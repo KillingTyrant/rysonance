@@ -4,7 +4,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff -f",
+    "db:migrate": "supabase migration up",
+    "db:advisors": "supabase db advisors --local",
+    "db:push": "supabase db push"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",
@@ -31,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
     "postcss": "^8",
+    "supabase": "^2.111.0",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5"
