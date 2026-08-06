@@ -12,6 +12,7 @@
     "db:diff": "supabase db diff -f",
     "db:migrate": "supabase migration up",
     "db:advisors": "supabase db advisors --local",
+    "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:push": "supabase db push"
   },
   "dependencies": {

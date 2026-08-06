@@ -1,17 +1,21 @@
-import Link from "next/link";
+import { CharacterWizard } from "@/components/onboarding/character-wizard";
+import { getCatalog } from "@/lib/onboarding/catalog";
 
-export default function OnboardingPage() {
+export const metadata = {
+  title: "Crea il tuo personaggio · Rysonance",
+};
+
+/**
+ * Il catalogo è risolto a build time (`getCatalog` è `"use cache"`), quindi
+ * tutta la UI del wizard finisce nella shell statica: a runtime restano solo
+ * le scelte dell'utente e la server action di salvataggio.
+ */
+export default async function OnboardingPage() {
+  const catalog = await getCatalog();
+
   return (
-    <div className="flex flex-col gap-16 items-center w-full">
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
-      <h1 className="text-4xl font-bold text-center">
-        Onboarding Page
-      </h1>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
-
-      <Link href="/lobby" className="mt-8 text-lg font-semibold text-primary underline text-center">
-        Go to Lobby Page
-      </Link>
+    <div className="flex w-full flex-col items-center">
+      <CharacterWizard catalog={catalog} />
     </div>
   );
 }

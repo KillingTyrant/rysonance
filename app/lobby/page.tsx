@@ -1,16 +1,34 @@
+import { Suspense } from "react";
 import Link from "next/link";
+
+import {
+  CharacterList,
+  CharacterListSkeleton,
+} from "@/components/characters/character-list";
+import { Button } from "@/components/ui/button";
+
+export const metadata = {
+  title: "I tuoi personaggi · Rysonance",
+};
 
 export default function LobbyPage() {
   return (
-    <div className="flex flex-col gap-16 items-center w-full">
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
-      <h1 className="text-4xl font-bold text-center">
-        Lobby Page
-      </h1>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
-      <Link href="/onboarding" className="mt-8 text-lg font-semibold text-primary underline text-center">
-        Go to Onboarding Page
-      </Link>
+    <div className="flex w-full flex-col gap-8">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-4xl font-bold">I tuoi personaggi</h1>
+          <p className="text-muted-foreground">
+            Tutti i personaggi che hai creato con il wizard.
+          </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/onboarding">Crea un personaggio</Link>
+        </Button>
+      </header>
+
+      <Suspense fallback={<CharacterListSkeleton />}>
+        <CharacterList />
+      </Suspense>
     </div>
   );
 }
