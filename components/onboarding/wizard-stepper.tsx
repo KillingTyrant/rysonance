@@ -5,12 +5,20 @@ import { WIZARD_STEPS } from "@/lib/onboarding/wizard-state";
 
 type WizardStepperProps = {
   current: number;
-  /** Step già completati: sono gli unici raggiungibili con un salto. */
   completed: (step: number) => boolean;
+  /** Ultimo step raggiungibile: oltre, le scelte precedenti non sono complete. */
+  limit: number;
+  disabled?: boolean;
   onGoTo: (step: number) => void;
 };
 
-export function WizardStepper({ current, completed, onGoTo }: WizardStepperProps) {
+export function WizardStepper({
+  current,
+  completed,
+  limit,
+  disabled = false,
+  onGoTo,
+}: WizardStepperProps) {
   const progress = ((current - 1) / (WIZARD_STEPS.length - 1)) * 100;
 
   return (
@@ -19,7 +27,7 @@ export function WizardStepper({ current, completed, onGoTo }: WizardStepperProps
         {WIZARD_STEPS.map((step) => {
           const isCurrent = step.id === current;
           const isDone = completed(step.id) && !isCurrent;
-          const reachable = isCurrent || step.id < current || completed(step.id - 1);
+          const reachable = !disabled && step.id <= limit;
 
           return (
             <li key={step.id}>

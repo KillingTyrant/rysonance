@@ -79,11 +79,15 @@ export function stirpiForRace(catalog: Catalog, raceKey: string | null) {
 }
 
 /**
- * Una razza senza stirpi non è completabile: `stirpe_key` è obbligatorio a
- * personaggio completato e la FK composta pretende che appartenga alla razza.
+ * Una razza è giocabile solo se ha almeno una stirpe (`stirpe_key` è
+ * obbligatorio a personaggio completato e la FK composta pretende che
+ * appartenga alla razza) e le statistiche base, altrimenti il personaggio
+ * verrebbe salvato con hp/mana/velocità nulli.
  */
 export function isRaceSelectable(catalog: Catalog, raceKey: string): boolean {
-  return stirpiForRace(catalog, raceKey).length > 0;
+  const race = raceByKey(catalog, raceKey);
+  if (!race || race.stirpi.length === 0) return false;
+  return race.base_hp != null && race.base_mana != null && race.base_speed != null;
 }
 
 /** Categorie a scelta singola di un dato step del wizard. */
@@ -203,6 +207,65 @@ export function parseDisciplinePoints(value: unknown): DisciplinePoints {
   return points;
 }
 
+// ────────────────────────── normalizzazione payload ────────────────────────
+
+/** Campi del payload che devono essere stringhe. */
+const REQUIRED_STRING_FIELDS = [
+  "name",
+  "race_key",
+  "stirpe_key",
+  "gender_key",
+  "via_key",
+  "attack_key",
+  "defense_key",
+  "reaction_key",
+  "alignment_key",
+  "morality_key",
+] as const;
+
+/**
+ * Ripulisce il payload che arriva dalla server action.
+ *
+ * I tipi TypeScript spariscono al confine di rete: l'argomento di una server
+ * action è controllato dal chiamante, quindi la forma va verificata a runtime.
+ * Gli assi del carattere mancanti prendono il default del catalogo, così le
+ * colonne `trait_*` non restano mai NULL su un personaggio completato.
+ * Ritorna `null` se il payload non è nemmeno della forma giusta.
+ */
+export function normalizeCharacterInput(
+  catalog: Catalog,
+  input: unknown,
+): CharacterInput | null {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  const raw = input as Record<string, unknown>;
+
+  if (!REQUIRED_STRING_FIELDS.every((field) => typeof raw[field] === "string")) {
+    return null;
+  }
+
+  const provided =
+    raw.traits && typeof raw.traits === "object" && !Array.isArray(raw.traits)
+      ? (raw.traits as Record<string, unknown>)
+      : {};
+
+  const traits: Record<string, number> = {};
+  for (const trait of supportedTraits(catalog)) {
+    const value = provided[trait.key];
+    traits[trait.key] = typeof value === "number" ? value : trait.default_value;
+  }
+
+  const fields = Object.fromEntries(
+    REQUIRED_STRING_FIELDS.map((field) => [field, raw[field] as string]),
+  ) as Pick<CharacterInput, (typeof REQUIRED_STRING_FIELDS)[number]>;
+
+  return {
+    ...fields,
+    name: fields.name.trim(),
+    traits,
+    discipline_points: parseDisciplinePoints(raw.discipline_points),
+  };
+}
+
 // ─────────────────────────────── validazione ───────────────────────────────
 
 /**
@@ -274,7 +337,8 @@ export function validateCharacterInput(
     }
   }
 
-  const supported = new Set(supportedTraits(catalog).map((trait) => trait.key));
+  const traits = supportedTraits(catalog);
+  const supported = new Set(traits.map((trait) => trait.key));
   for (const [key, value] of Object.entries(input.traits)) {
     if (!supported.has(key)) {
       problems.push(`L'asse del carattere "${key}" non esiste.`);
@@ -285,9 +349,28 @@ export function validateCharacterInput(
     }
   }
 
+  // Un personaggio completato deve avere tutti gli assi: le colonne trait_*
+  // sono nullable e il vincolo del DB non le copre.
+  for (const trait of traits) {
+    if (!(trait.key in input.traits)) {
+      problems.push(
+        `L'asse "${trait.left_label} · ${trait.right_label}" è obbligatorio.`,
+      );
+    }
+  }
+
   problems.push(
     ...validateDisciplinePoints(catalog, input.via_key, input.discipline_points),
   );
+
+  // La regola "spendi tutti gli slot" vale anche qui, non solo nella UI:
+  // la server action è un endpoint pubblico.
+  const spent = spentSlots(input.discipline_points);
+  if (spent < catalog.disciplineSlotBudget) {
+    problems.push(
+      `Devi assegnare tutti i ${catalog.disciplineSlotBudget} slot disciplina (assegnati: ${spent}).`,
+    );
+  }
 
   return problems;
 }

@@ -67,13 +67,29 @@ export function IdentityStep({
                 title={option.name}
                 selected={state.race_key === option.key}
                 disabled={!selectable}
-                disabledReason="Nessuna stirpe disponibile: non ancora giocabile."
+                disabledReason={
+                  option.stirpi.length === 0
+                    ? "Nessuna stirpe disponibile: non ancora giocabile."
+                    : "Statistiche base non ancora definite."
+                }
                 onSelect={() => onRace(option.key)}
                 meta={
-                  <span className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
-                    <span>HP {option.base_hp ?? "—"}</span>
-                    <span>Mana {option.base_mana ?? "—"}</span>
-                    <span>Velocità {option.base_speed ?? "—"}</span>
+                  <span className="flex flex-col gap-1 text-xs text-muted-foreground">
+                    <span className="flex flex-wrap gap-x-3">
+                      <span>HP {option.base_hp ?? "—"}</span>
+                      <span>Mana {option.base_mana ?? "—"}</span>
+                      <span>Velocità {option.base_speed ?? "—"}</span>
+                    </span>
+                    <span className="flex flex-wrap gap-x-3">
+                      {option.racialTalent && (
+                        <span>Talento: {option.racialTalent.name}</span>
+                      )}
+                      <span>
+                        {option.stirpi.length === 1
+                          ? "1 stirpe"
+                          : `${option.stirpi.length} stirpi`}
+                      </span>
+                    </span>
                   </span>
                 }
               />

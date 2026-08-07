@@ -8,6 +8,7 @@ import {
   allowedDisciplineKeys,
   categoriesForStep,
   fieldForCategory,
+  NAME_MAX_LENGTH,
   remainingSlots,
   stirpiForRace,
   supportedTraits,
@@ -68,14 +69,17 @@ export function selectRace(
   catalog: Catalog,
   state: WizardState,
   raceKey: string,
-): WizardState {
+): { state: WizardState; clearedStirpe: boolean } {
   const stillValid = stirpiForRace(catalog, raceKey).some(
     (stirpe) => stirpe.key === state.stirpe_key,
   );
   return {
-    ...state,
-    race_key: raceKey,
-    stirpe_key: stillValid ? state.stirpe_key : null,
+    state: {
+      ...state,
+      race_key: raceKey,
+      stirpe_key: stillValid ? state.stirpe_key : null,
+    },
+    clearedStirpe: Boolean(state.stirpe_key) && !stillValid,
   };
 }
 
@@ -111,10 +115,13 @@ export function changeDisciplinePoints(
   delta: number,
 ): WizardState {
   const current = state.discipline_points[disciplineKey] ?? 0;
-  const capped = Math.min(
-    Math.max(0, current + delta),
-    current + remainingSlots(catalog, state.discipline_points),
-  );
+  const next = Math.max(0, current + delta);
+  // Solo gli incrementi sono limitati dal budget: un decremento deve togliere
+  // esattamente quanto chiesto, anche se il budget fosse già sforato.
+  const capped =
+    delta > 0
+      ? Math.min(next, current + Math.max(0, remainingSlots(catalog, state.discipline_points)))
+      : next;
 
   const points = { ...state.discipline_points };
   if (capped > 0) points[disciplineKey] = capped;
@@ -139,24 +146,65 @@ export function isStepComplete(
 
   switch (step) {
     case 1:
-      return (
-        state.name.trim().length > 0 &&
-        Boolean(state.race_key) &&
-        Boolean(state.stirpe_key) &&
-        categoriesDone
-      );
+      return isNameValid(state.name) && Boolean(state.race_key) && Boolean(state.stirpe_key) && categoriesDone;
     case 2:
       return Boolean(state.via_key);
     case 5:
-      // Regola di prodotto: gli slot vanno spesi tutti. Il DB si limita a
-      // rifiutare chi sfora il budget.
+      // Regola di prodotto: gli slot vanno spesi tutti. La stessa regola è
+      // riapplicata dalla server action.
       return remainingSlots(catalog, state.discipline_points) === 0;
+    case LAST_STEP:
+      // Il riepilogo non si "completa": è il punto in cui si salva.
+      return false;
     default:
       return categoriesDone;
   }
 }
 
-/** Primo step incompleto: fin lì la navigazione è libera. */
+function isNameValid(name: string): boolean {
+  const trimmed = name.trim();
+  return trimmed.length > 0 && trimmed.length <= NAME_MAX_LENGTH;
+}
+
+/**
+ * Cosa manca per completare uno step, in etichette leggibili: serve a dire
+ * all'utente perché "Avanti" è disabilitato.
+ */
+export function missingForStep(
+  catalog: Catalog,
+  state: WizardState,
+  step: number,
+): string[] {
+  const missing: string[] = [];
+
+  if (step === 1) {
+    if (!isNameValid(state.name)) missing.push("Nome");
+    if (!state.race_key) missing.push("Razza");
+    if (!state.stirpe_key) missing.push("Stirpe");
+  }
+
+  if (step === 2 && !state.via_key) missing.push("Via");
+
+  if (step === 5) {
+    const remaining = remainingSlots(catalog, state.discipline_points);
+    if (remaining > 0) {
+      missing.push(`${remaining} slot da assegnare`);
+    }
+  }
+
+  for (const category of categoriesForStep(catalog, step)) {
+    const field = fieldForCategory(category.key);
+    if (field && !state[field]) missing.push(category.title);
+  }
+
+  return missing;
+}
+
+/**
+ * Primo step incompleto: fin lì la navigazione è libera. Guarda tutta la
+ * catena, non solo lo step precedente, così invalidare uno step iniziale
+ * richiude anche quelli dopo.
+ */
 export function firstIncompleteStep(catalog: Catalog, state: WizardState): number {
   for (const step of WIZARD_STEPS) {
     if (!isStepComplete(catalog, state, step.id)) return step.id;

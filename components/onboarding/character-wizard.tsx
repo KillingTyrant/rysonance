@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
@@ -11,9 +11,11 @@ import type { Catalog, Character } from "@/lib/onboarding/types";
 import {
   changeDisciplinePoints,
   FIRST_STEP,
+  firstIncompleteStep,
   initialWizardState,
   isStepComplete,
   LAST_STEP,
+  missingForStep,
   selectRace,
   selectVia,
   toCharacterInput,
@@ -45,10 +47,31 @@ export function CharacterWizard({ catalog }: { catalog: Catalog }) {
   const [saved, setSaved] = useState<Character | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const stepRef = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
+
+  // Cambiando step la pagina resterebbe scrollata dov'era (lo step 1 è lungo
+  // diverse schermate) e il focus andrebbe perso sul bottone appena
+  // disabilitato: lo riportiamo all'inizio del nuovo step.
+  useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    stepRef.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0 });
+  }, [step]);
+
+  useEffect(() => {
+    if (saved) window.scrollTo({ top: 0 });
+  }, [saved]);
+
   const stepComplete = (id: number) => isStepComplete(catalog, state, id);
   const incompleteSteps = WIZARD_STEPS.filter(
     (item) => item.id !== LAST_STEP && !stepComplete(item.id),
   );
+  const missing = missingForStep(catalog, state, step);
+  const reachableLimit = Math.max(step, firstIncompleteStep(catalog, state));
 
   function goTo(next: number) {
     setNotice(null);
@@ -56,7 +79,13 @@ export function CharacterWizard({ catalog }: { catalog: Catalog }) {
   }
 
   function handleRace(raceKey: string) {
-    setState((current) => selectRace(catalog, current, raceKey));
+    const { state: next, clearedStirpe } = selectRace(catalog, state, raceKey);
+    setState(next);
+    setNotice(
+      clearedStirpe
+        ? "Cambiando razza la stirpe scelta non era più valida: scegline una fra quelle di questa razza."
+        : null,
+    );
   }
 
   function handleVia(viaKey: string) {
@@ -81,9 +110,18 @@ export function CharacterWizard({ catalog }: { catalog: Catalog }) {
     }
     setError(null);
     startTransition(async () => {
-      const result = await saveCharacter(input);
-      if (result.ok) setSaved(result.character);
-      else setError({ message: result.message, problems: result.problems });
+      try {
+        const result = await saveCharacter(input);
+        if (result.ok) setSaved(result.character);
+        else setError({ message: result.message, problems: result.problems });
+      } catch {
+        // Rete caduta, 500, deploy nel frattempo: senza questo catch la promise
+        // rifiutata dentro la transizione smonterebbe il wizard e butterebbe
+        // via tutte le scelte.
+        setError({
+          message: "Non è stato possibile contattare il server. Riprova.",
+        });
+      }
     });
   }
 
@@ -104,6 +142,8 @@ export function CharacterWizard({ catalog }: { catalog: Catalog }) {
               setSaved(null);
               setState(initialWizardState(catalog));
               setStep(FIRST_STEP);
+              setNotice(null);
+              setError(null);
             }}
           >
             Creane un altro
@@ -117,90 +157,105 @@ export function CharacterWizard({ catalog }: { catalog: Catalog }) {
     <div className="flex w-full flex-col gap-8">
       <header className="flex flex-col gap-5">
         <h1 className="text-4xl font-bold">Crea il tuo personaggio</h1>
-        <WizardStepper current={step} completed={stepComplete} onGoTo={goTo} />
+        <WizardStepper
+          current={step}
+          completed={stepComplete}
+          limit={reachableLimit}
+          disabled={pending}
+          onGoTo={goTo}
+        />
       </header>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="flex flex-col gap-8">
-          {notice && (
-            <p className="rounded-xl border bg-secondary/40 p-3 text-sm text-muted-foreground">
-              {notice}
-            </p>
-          )}
+          <div role="status" aria-live="polite">
+            {notice && (
+              <p className="rounded-xl border bg-secondary/40 p-3 text-sm text-muted-foreground">
+                {notice}
+              </p>
+            )}
+          </div>
 
-          {step === 1 && (
-            <IdentityStep
-              catalog={catalog}
-              state={state}
-              onName={(name) => setState((current) => ({ ...current, name }))}
-              onRace={handleRace}
-              onStirpe={(stirpeKey) =>
-                setState((current) => ({ ...current, stirpe_key: stirpeKey }))
-              }
-              onChoice={handleChoice}
-            />
-          )}
-
-          {step === 2 && <ViaStep catalog={catalog} state={state} onVia={handleVia} />}
-
-          {step === 3 && (
-            <CategoriesStep
-              catalog={catalog}
-              state={state}
-              step={3}
-              onChoice={handleChoice}
-            />
-          )}
-
-          {step === 4 && (
-            <CategoriesStep
-              catalog={catalog}
-              state={state}
-              step={4}
-              onChoice={handleChoice}
-            >
-              <TraitsSliders
+          <div
+            key={step}
+            ref={stepRef}
+            tabIndex={-1}
+            className="flex flex-col gap-8 outline-none"
+          >
+            {step === 1 && (
+              <IdentityStep
                 catalog={catalog}
                 state={state}
-                onTrait={(traitKey, value) =>
-                  setState((current) => ({
-                    ...current,
-                    traits: { ...current.traits, [traitKey]: value },
-                  }))
+                onName={(name) => setState((current) => ({ ...current, name }))}
+                onRace={handleRace}
+                onStirpe={(stirpeKey) =>
+                  setState((current) => ({ ...current, stirpe_key: stirpeKey }))
+                }
+                onChoice={handleChoice}
+              />
+            )}
+
+            {step === 2 && <ViaStep catalog={catalog} state={state} onVia={handleVia} />}
+
+            {step === 3 && (
+              <CategoriesStep
+                catalog={catalog}
+                state={state}
+                step={3}
+                onChoice={handleChoice}
+              />
+            )}
+
+            {step === 4 && (
+              <CategoriesStep
+                catalog={catalog}
+                state={state}
+                step={4}
+                onChoice={handleChoice}
+              >
+                <TraitsSliders
+                  catalog={catalog}
+                  state={state}
+                  onTrait={(traitKey, value) =>
+                    setState((current) => ({
+                      ...current,
+                      traits: { ...current.traits, [traitKey]: value },
+                    }))
+                  }
+                />
+              </CategoriesStep>
+            )}
+
+            {step === 5 && (
+              <DisciplinesStep
+                catalog={catalog}
+                state={state}
+                onChangePoints={(disciplineKey, delta) =>
+                  setState((current) =>
+                    changeDisciplinePoints(catalog, current, disciplineKey, delta),
+                  )
                 }
               />
-            </CategoriesStep>
-          )}
+            )}
 
-          {step === 5 && (
-            <DisciplinesStep
-              catalog={catalog}
-              state={state}
-              onChangePoints={(disciplineKey, delta) =>
-                setState((current) =>
-                  changeDisciplinePoints(catalog, current, disciplineKey, delta),
-                )
-              }
-            />
-          )}
+            {step === LAST_STEP && (
+              <SummaryStep
+                catalog={catalog}
+                state={state}
+                incompleteSteps={incompleteSteps}
+                pending={pending}
+                error={error}
+                onSave={handleSave}
+                onGoTo={goTo}
+              />
+            )}
+          </div>
 
-          {step === LAST_STEP && (
-            <SummaryStep
-              catalog={catalog}
-              state={state}
-              incompleteSteps={incompleteSteps}
-              pending={pending}
-              error={error}
-              onSave={handleSave}
-              onGoTo={goTo}
-            />
-          )}
-
-          <nav className="flex items-center justify-between gap-3 border-t pt-6">
+          <nav className="flex flex-wrap items-center justify-between gap-3 border-t pt-6">
             <Button
               type="button"
               variant="outline"
-              disabled={step === FIRST_STEP}
+              disabled={step === FIRST_STEP || pending}
               onClick={() => goTo(step - 1)}
             >
               <ArrowLeft />
@@ -208,15 +263,15 @@ export function CharacterWizard({ catalog }: { catalog: Catalog }) {
             </Button>
 
             {step < LAST_STEP && (
-              <div className="flex items-center gap-3">
-                {!stepComplete(step) && (
-                  <span className="hidden text-sm text-muted-foreground sm:inline">
-                    Completa le scelte per proseguire
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                {missing.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    Manca: {missing.join(", ")}
                   </span>
                 )}
                 <Button
                   type="button"
-                  disabled={!stepComplete(step)}
+                  disabled={!stepComplete(step) || pending}
                   onClick={() => goTo(step + 1)}
                 >
                   Avanti

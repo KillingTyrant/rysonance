@@ -5,9 +5,14 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 import { getCatalog } from "./catalog";
-import { computeStats, isTraitColumn, validateCharacterInput } from "./rules";
+import {
+  computeStats,
+  isTraitColumn,
+  normalizeCharacterInput,
+  validateCharacterInput,
+} from "./rules";
 import type { TraitColumn } from "./rules";
-import type { Character, CharacterInput, SaveCharacterResult } from "./types";
+import type { Character, SaveCharacterResult } from "./types";
 
 /** Livello di partenza di un personaggio appena creato. */
 const STARTING_LEVEL = 1;
@@ -30,13 +35,15 @@ export async function listCharacters(): Promise<Character[]> {
 /**
  * Salva il personaggio completo del wizard con un solo INSERT.
  *
+ * L'argomento è `unknown` di proposito: una server action è un endpoint
+ * pubblico e la forma del payload va verificata a runtime, non con i tipi.
  * `user_id` viene dal JWT e mai dal client (RLS pretende `auth.uid()`), le stat
  * sono ricalcolate dal catalogo e il payload è rivalidato: la UI non è fidata.
  * Le colonne `*_category` sono GENERATED e non vanno mai inviate — Postgres
  * rifiuta l'INSERT anche se il valore è `null`.
  */
 export async function createCompletedCharacter(
-  input: CharacterInput,
+  input: unknown,
 ): Promise<SaveCharacterResult> {
   const supabase = await createClient();
 
@@ -50,7 +57,16 @@ export async function createCompletedCharacter(
   }
 
   const catalog = await getCatalog();
-  const problems = validateCharacterInput(catalog, input);
+
+  const character = normalizeCharacterInput(catalog, input);
+  if (!character) {
+    return {
+      ok: false,
+      message: "Dati del personaggio non validi. Ricarica la pagina e riprova.",
+    };
+  }
+
+  const problems = validateCharacterInput(catalog, character);
   if (problems.length > 0) {
     return {
       ok: false,
@@ -60,7 +76,7 @@ export async function createCompletedCharacter(
   }
 
   const traits: Partial<Record<TraitColumn, number>> = {};
-  for (const [key, value] of Object.entries(input.traits)) {
+  for (const [key, value] of Object.entries(character.traits)) {
     if (isTraitColumn(key)) traits[key] = value;
   }
 
@@ -69,20 +85,20 @@ export async function createCompletedCharacter(
     .insert({
       user_id: userId,
       status: "completed",
-      name: input.name.trim(),
-      race_key: input.race_key,
-      stirpe_key: input.stirpe_key,
-      gender_key: input.gender_key,
-      via_key: input.via_key,
-      attack_key: input.attack_key,
-      defense_key: input.defense_key,
-      reaction_key: input.reaction_key,
-      alignment_key: input.alignment_key,
-      morality_key: input.morality_key,
-      discipline_points: input.discipline_points,
+      name: character.name,
+      race_key: character.race_key,
+      stirpe_key: character.stirpe_key,
+      gender_key: character.gender_key,
+      via_key: character.via_key,
+      attack_key: character.attack_key,
+      defense_key: character.defense_key,
+      reaction_key: character.reaction_key,
+      alignment_key: character.alignment_key,
+      morality_key: character.morality_key,
+      discipline_points: character.discipline_points,
       level: STARTING_LEVEL,
       ...traits,
-      ...computeStats(catalog, input.race_key, input.via_key, STARTING_LEVEL),
+      ...computeStats(catalog, character.race_key, character.via_key, STARTING_LEVEL),
     })
     .select()
     .single();
