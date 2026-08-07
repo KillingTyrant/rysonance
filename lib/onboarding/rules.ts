@@ -79,15 +79,28 @@ export function stirpiForRace(catalog: Catalog, raceKey: string | null) {
 }
 
 /**
- * Una razza è giocabile solo se ha almeno una stirpe (`stirpe_key` è
+ * Una stirpe è giocabile solo se ha le statistiche base: sono sue, non della
+ * razza, e senza di esse il personaggio verrebbe salvato con hp/mana/velocità
+ * nulli.
+ */
+export function isStirpeSelectable(catalog: Catalog, stirpeKey: string): boolean {
+  const stirpe = stirpeByKey(catalog, stirpeKey);
+  if (!stirpe) return false;
+  return (
+    stirpe.base_hp != null && stirpe.base_mana != null && stirpe.base_speed != null
+  );
+}
+
+/**
+ * Una razza è giocabile solo se ha almeno una stirpe giocabile: `stirpe_key` è
  * obbligatorio a personaggio completato e la FK composta pretende che
- * appartenga alla razza) e le statistiche base, altrimenti il personaggio
- * verrebbe salvato con hp/mana/velocità nulli.
+ * appartenga alla razza, quindi una razza senza stirpi utilizzabili è un vicolo
+ * cieco.
  */
 export function isRaceSelectable(catalog: Catalog, raceKey: string): boolean {
   const race = raceByKey(catalog, raceKey);
-  if (!race || race.stirpi.length === 0) return false;
-  return race.base_hp != null && race.base_mana != null && race.base_speed != null;
+  if (!race) return false;
+  return race.stirpi.some((stirpe) => isStirpeSelectable(catalog, stirpe.key));
 }
 
 /** Categorie a scelta singola di un dato step del wizard. */
@@ -159,16 +172,16 @@ export function talentsFor(
 // ────────────────────────────── stat e slot ────────────────────────────────
 
 /**
- * Stat derivate: base della razza + incremento della Via per ogni livello oltre
- * il primo. Restituisce `null` sui valori di razza non ancora definiti.
+ * Stat derivate: base della stirpe + incremento della Via per ogni livello
+ * oltre il primo. Restituisce `null` sui valori di stirpe non ancora definiti.
  */
 export function computeStats(
   catalog: Catalog,
-  raceKey: string | null,
+  stirpeKey: string | null,
   viaKey: string | null,
   level: number,
 ): Stats {
-  const race = raceByKey(catalog, raceKey);
+  const stirpe = stirpeByKey(catalog, stirpeKey);
   const via = viaByKey(catalog, viaKey);
   const levels = Math.max(0, level - 1);
 
@@ -176,9 +189,9 @@ export function computeStats(
     base == null ? null : base + (perLevel ?? 0) * levels;
 
   return {
-    hp: derive(race?.base_hp, via?.per_level_hp),
-    mana: derive(race?.base_mana, via?.per_level_mana),
-    speed: derive(race?.base_speed, via?.per_level_speed),
+    hp: derive(stirpe?.base_hp, via?.per_level_hp),
+    mana: derive(stirpe?.base_mana, via?.per_level_mana),
+    speed: derive(stirpe?.base_speed, via?.per_level_speed),
   };
 }
 
@@ -324,6 +337,10 @@ export function validateCharacterInput(
     problems.push("La razza selezionata non esiste.");
   } else if (!race.stirpi.some((stirpe) => stirpe.key === input.stirpe_key)) {
     problems.push(`La stirpe selezionata non appartiene alla razza ${race.name}.`);
+  } else if (!isStirpeSelectable(catalog, input.stirpe_key)) {
+    // Le stat sono della stirpe: senza, il personaggio finirebbe nel DB con
+    // hp/mana/velocità NULL.
+    problems.push("La stirpe selezionata non è ancora giocabile.");
   }
 
   if (!viaByKey(catalog, input.via_key)) {

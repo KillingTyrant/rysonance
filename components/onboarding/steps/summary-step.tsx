@@ -40,7 +40,7 @@ export function SummaryStep({
   const race = raceByKey(catalog, state.race_key);
   const stirpe = stirpeByKey(catalog, state.stirpe_key);
   const via = viaByKey(catalog, state.via_key);
-  const stats = computeStats(catalog, state.race_key, state.via_key, 1);
+  const stats = computeStats(catalog, state.stirpe_key, state.via_key, 1);
   const talents = talentsFor(catalog, {
     raceKey: state.race_key,
     stirpeKey: state.stirpe_key,

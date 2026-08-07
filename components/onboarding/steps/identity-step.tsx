@@ -4,6 +4,7 @@ import {
   categoriesForStep,
   fieldForCategory,
   isRaceSelectable,
+  isStirpeSelectable,
   NAME_MAX_LENGTH,
   raceByKey,
   stirpeByKey,
@@ -56,45 +57,35 @@ export function IdentityStep({
 
       <StepSection
         title="Razza"
-        description="Definisce le statistiche di partenza e il talento razziale."
+        description="Raggruppa le stirpi e porta il talento razziale."
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {catalog.races.map((option) => {
-            const selectable = isRaceSelectable(catalog, option.key);
-            return (
-              <OptionCard
-                key={option.key}
-                title={option.name}
-                selected={state.race_key === option.key}
-                disabled={!selectable}
-                disabledReason={
-                  option.stirpi.length === 0
-                    ? "Nessuna stirpe disponibile: non ancora giocabile."
-                    : "Statistiche base non ancora definite."
-                }
-                onSelect={() => onRace(option.key)}
-                meta={
-                  <span className="flex flex-col gap-1 text-xs text-muted-foreground">
-                    <span className="flex flex-wrap gap-x-3">
-                      <span>HP {option.base_hp ?? "—"}</span>
-                      <span>Mana {option.base_mana ?? "—"}</span>
-                      <span>Velocità {option.base_speed ?? "—"}</span>
-                    </span>
-                    <span className="flex flex-wrap gap-x-3">
-                      {option.racialTalent && (
-                        <span>Talento: {option.racialTalent.name}</span>
-                      )}
-                      <span>
-                        {option.stirpi.length === 1
-                          ? "1 stirpe"
-                          : `${option.stirpi.length} stirpi`}
-                      </span>
-                    </span>
+          {catalog.races.map((option) => (
+            <OptionCard
+              key={option.key}
+              title={option.name}
+              selected={state.race_key === option.key}
+              disabled={!isRaceSelectable(catalog, option.key)}
+              disabledReason={
+                option.stirpi.length === 0
+                  ? "Nessuna stirpe disponibile: non ancora giocabile."
+                  : "Nessuna stirpe con le statistiche base definite."
+              }
+              onSelect={() => onRace(option.key)}
+              meta={
+                <span className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                  {option.racialTalent && (
+                    <span>Talento: {option.racialTalent.name}</span>
+                  )}
+                  <span>
+                    {option.stirpi.length === 1
+                      ? "1 stirpe"
+                      : `${option.stirpi.length} stirpi`}
                   </span>
-                }
-              />
-            );
-          })}
+                </span>
+              }
+            />
+          ))}
         </div>
 
         {race?.racialTalent && (
@@ -109,6 +100,7 @@ export function IdentityStep({
 
       <StepSection
         title="Stirpe"
+        description="Definisce le statistiche di partenza e il talento di stirpe."
         hint={
           race
             ? `Le stirpi elencate sono solo quelle di ${race.name}: cambiando razza la scelta si azzera.`
@@ -129,13 +121,18 @@ export function IdentityStep({
                 title={option.name}
                 description={option.description || undefined}
                 selected={state.stirpe_key === option.key}
+                disabled={!isStirpeSelectable(catalog, option.key)}
+                disabledReason="Statistiche base non ancora definite."
                 onSelect={() => onStirpe(option.key)}
                 meta={
-                  option.talent && (
-                    <span className="text-xs text-muted-foreground">
-                      Talento: {option.talent.name}
+                  <span className="flex flex-col gap-1 text-xs text-muted-foreground">
+                    <span className="flex flex-wrap gap-x-3">
+                      <span>HP {option.base_hp ?? "—"}</span>
+                      <span>Mana {option.base_mana ?? "—"}</span>
+                      <span>Velocità {option.base_speed ?? "—"}</span>
                     </span>
-                  )
+                    {option.talent && <span>Talento: {option.talent.name}</span>}
+                  </span>
                 }
               />
             ))}

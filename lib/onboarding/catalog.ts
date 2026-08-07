@@ -1,3 +1,4 @@
+/* Server Component async */
 import "server-only";
 
 import { cacheLife } from "next/cache";

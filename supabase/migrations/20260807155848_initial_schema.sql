@@ -235,9 +235,8 @@ CREATE POLICY game_config_read ON public.game_config
 CREATE TABLE public.races (
   key               text     NOT NULL,
   name              text     NOT NULL,
-  base_hp           smallint,
-  base_mana         smallint,
-  base_speed        smallint,
+  description_name  text     DEFAULT ''::text NOT NULL,
+  description       text     DEFAULT ''::text NOT NULL,
   racial_talent_key text,
   sort_order        smallint DEFAULT 0 NOT NULL
 );
@@ -270,6 +269,9 @@ CREATE TABLE public.stirpi (
   name        text     NOT NULL,
   talent_key  text,
   description text     DEFAULT ''::text NOT NULL,
+  base_hp     smallint,
+  base_mana   smallint,
+  base_speed  smallint,
   sort_order  smallint DEFAULT 0 NOT NULL
 );
 

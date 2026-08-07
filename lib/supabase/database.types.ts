@@ -292,27 +292,24 @@ export type Database = {
       }
       races: {
         Row: {
-          base_hp: number | null
-          base_mana: number | null
-          base_speed: number | null
+          description: string
+          description_name: string
           key: string
           name: string
           racial_talent_key: string | null
           sort_order: number
         }
         Insert: {
-          base_hp?: number | null
-          base_mana?: number | null
-          base_speed?: number | null
+          description?: string
+          description_name?: string
           key: string
           name: string
           racial_talent_key?: string | null
           sort_order?: number
         }
         Update: {
-          base_hp?: number | null
-          base_mana?: number | null
-          base_speed?: number | null
+          description?: string
+          description_name?: string
           key?: string
           name?: string
           racial_talent_key?: string | null
@@ -330,6 +327,9 @@ export type Database = {
       }
       stirpi: {
         Row: {
+          base_hp: number | null
+          base_mana: number | null
+          base_speed: number | null
           description: string
           key: string
           name: string
@@ -338,6 +338,9 @@ export type Database = {
           talent_key: string | null
         }
         Insert: {
+          base_hp?: number | null
+          base_mana?: number | null
+          base_speed?: number | null
           description?: string
           key: string
           name: string
@@ -346,6 +349,9 @@ export type Database = {
           talent_key?: string | null
         }
         Update: {
+          base_hp?: number | null
+          base_mana?: number | null
+          base_speed?: number | null
           description?: string
           key?: string
           name?: string

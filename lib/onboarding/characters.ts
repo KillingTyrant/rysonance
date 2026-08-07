@@ -98,7 +98,12 @@ export async function createCompletedCharacter(
       discipline_points: character.discipline_points,
       level: STARTING_LEVEL,
       ...traits,
-      ...computeStats(catalog, character.race_key, character.via_key, STARTING_LEVEL),
+      ...computeStats(
+        catalog,
+        character.stirpe_key,
+        character.via_key,
+        STARTING_LEVEL,
+      ),
     })
     .select()
     .single();

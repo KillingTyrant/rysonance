@@ -83,11 +83,22 @@ schema_paths = ["./schemas/00_extensions.sql", "./schemas/*.sql"]
 Il diff dichiarativo non gestisce queste entità — vanno in una migrazione versionata scritta
 a mano (`npx supabase migration new <nome>`), con un commento che spieghi perché:
 
-- DML (`INSERT` / `UPDATE` / `DELETE`) e backfill di dati
+- DML (`INSERT` / `UPDATE` / `DELETE`) e backfill di dati **una tantum** (es. il travaso di
+  una colonna da una tabella a un'altra). I contenuti del catalogo sono l'eccezione
+  all'eccezione: vedi sotto.
 - `ALTER POLICY` (RLS) — la `CREATE POLICY` iniziale sta in `schemas/`, le modifiche no
 - viste materializzate, ownership delle viste e `security_invoker`
 - privilegi su colonne e schemi, grant duplicati da default privileges
 - `COMMENT ON`, partizioni, publication, domain
+
+### Contenuti del catalogo: `supabase/seeds/`
+
+I dati di riferimento del wizard (talenti, razze, stirpi, vie, discipline, opzioni,
+`game_config`) **non** stanno nelle migrazioni: vivono in `supabase/seeds/00_catalog.sql`,
+che è idempotente e descrive lo stato desiderato come fanno i file in `schemas/`. Cambiare
+una descrizione o aggiungere una stirpe significa editare quel file, non generare una
+migrazione. Si applica con `npm run db:reset` in locale e
+`npx supabase db push --include-seed` in cloud. Regole e vincoli: `supabase/seeds/README.md`.
 
 ### Sicurezza (vale anche nei file `schemas/`)
 
