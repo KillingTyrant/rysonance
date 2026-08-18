@@ -2,9 +2,9 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 import {
-  CharacterList,
-  CharacterListSkeleton,
-} from "@/components/characters/character-list";
+  PersonaggioList,
+  PersonaggioListSkeleton,
+} from "@/components/personaggi/personaggio-list";
 import { Button } from "@/components/ui/button";
 
 export const metadata = {
@@ -26,8 +26,8 @@ export default function LobbyPage() {
         </Button>
       </header>
 
-      <Suspense fallback={<CharacterListSkeleton />}>
-        <CharacterList />
+      <Suspense fallback={<PersonaggioListSkeleton />}>
+        <PersonaggioList />
       </Suspense>
     </div>
   );

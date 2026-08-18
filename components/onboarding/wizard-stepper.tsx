@@ -1,15 +1,15 @@
 import { Check } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { WIZARD_STEPS } from "@/lib/onboarding/wizard-state";
+import { stepIndex, WIZARD_STEPS, type StepId } from "@/lib/onboarding/steps";
 
 type WizardStepperProps = {
-  current: number;
-  completed: (step: number) => boolean;
+  current: StepId;
+  completed: (step: StepId) => boolean;
   /** Ultimo step raggiungibile: oltre, le scelte precedenti non sono complete. */
-  limit: number;
+  limit: StepId;
   disabled?: boolean;
-  onGoTo: (step: number) => void;
+  onGoTo: (step: StepId) => void;
 };
 
 export function WizardStepper({
@@ -19,15 +19,17 @@ export function WizardStepper({
   disabled = false,
   onGoTo,
 }: WizardStepperProps) {
-  const progress = ((current - 1) / (WIZARD_STEPS.length - 1)) * 100;
+  const currentIndex = stepIndex(current);
+  const limitIndex = stepIndex(limit);
+  const progress = (currentIndex / (WIZARD_STEPS.length - 1)) * 100;
 
   return (
     <div className="flex w-full flex-col gap-3">
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-2">
-        {WIZARD_STEPS.map((step) => {
+        {WIZARD_STEPS.map((step, index) => {
           const isCurrent = step.id === current;
           const isDone = completed(step.id) && !isCurrent;
-          const reachable = !disabled && step.id <= limit;
+          const reachable = !disabled && index <= limitIndex;
 
           return (
             <li key={step.id}>
@@ -49,7 +51,7 @@ export function WizardStepper({
                     isDone && "border-primary text-foreground",
                   )}
                 >
-                  {isDone ? <Check className="h-3 w-3" /> : step.id}
+                  {isDone ? <Check className="h-3 w-3" /> : index + 1}
                 </span>
                 <span className="hidden sm:inline">{step.title}</span>
               </button>

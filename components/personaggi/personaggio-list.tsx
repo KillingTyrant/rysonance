@@ -2,20 +2,20 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { getCatalog } from "@/lib/onboarding/catalog";
-import { listCharacters } from "@/lib/onboarding/characters";
+import { listPersonaggi } from "@/lib/onboarding/personaggi";
 
-import { CharacterCard } from "./character-card";
+import { PersonaggioCard } from "./personaggio-card";
 
 /**
  * Lista dei personaggi dell'utente. Legge i cookie (sessione), quindi va
  * renderizzata dentro un `<Suspense>`: resta fuori dalla shell statica.
  */
-export async function CharacterList() {
+export async function PersonaggioList() {
   const catalog = await getCatalog();
 
-  let characters;
+  let personaggi;
   try {
-    characters = await listCharacters();
+    personaggi = await listPersonaggi();
   } catch {
     return (
       <p className="text-sm text-red-500">
@@ -24,7 +24,7 @@ export async function CharacterList() {
     );
   }
 
-  if (characters.length === 0) {
+  if (personaggi.length === 0) {
     return (
       <div className="flex flex-col items-start gap-4 rounded-xl border bg-card p-8 shadow">
         <div className="flex flex-col gap-1">
@@ -44,13 +44,15 @@ export async function CharacterList() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted-foreground">
-        {characters.length === 1
-          ? "1 personaggio"
-          : `${characters.length} personaggi`}
+        {personaggi.length === 1 ? "1 personaggio" : `${personaggi.length} personaggi`}
       </p>
       <div className="grid gap-4 sm:grid-cols-2">
-        {characters.map((character) => (
-          <CharacterCard key={character.id} character={character} catalog={catalog} />
+        {personaggi.map((personaggio) => (
+          <PersonaggioCard
+            key={personaggio.id}
+            personaggio={personaggio}
+            catalog={catalog}
+          />
         ))}
       </div>
     </div>
@@ -58,7 +60,7 @@ export async function CharacterList() {
 }
 
 /** Segnaposto mostrato mentre la lista viene caricata. */
-export function CharacterListSkeleton() {
+export function PersonaggioListSkeleton() {
   return (
     <div className="grid gap-4 sm:grid-cols-2" aria-hidden>
       {[0, 1].map((index) => (

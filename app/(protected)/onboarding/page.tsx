@@ -1,4 +1,4 @@
-import { CharacterWizard } from "@/components/onboarding/character-wizard";
+import { PersonaggioWizard } from "@/components/onboarding/personaggio-wizard";
 import { getCatalog } from "@/lib/onboarding/catalog";
 
 export const metadata = {
@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
 
   return (
     <div className="flex w-full flex-col items-center">
-      <CharacterWizard catalog={catalog} />
+      <PersonaggioWizard catalog={catalog} />
     </div>
   );
 }

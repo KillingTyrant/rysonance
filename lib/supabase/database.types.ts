@@ -34,508 +34,498 @@ export type Database = {
   }
   public: {
     Tables: {
-      character_traits: {
+      caratteristiche: {
         Row: {
-          default_value: number
+          description: string
+          hp_per_punto: number
           key: string
-          left_label: string
-          right_label: string
+          mana_per_punto: number
+          name: string
           sort_order: number
         }
         Insert: {
-          default_value?: number
+          description?: string
+          hp_per_punto?: number
           key: string
-          left_label: string
-          right_label: string
+          mana_per_punto?: number
+          name: string
           sort_order?: number
         }
         Update: {
-          default_value?: number
+          description?: string
+          hp_per_punto?: number
           key?: string
-          left_label?: string
-          right_label?: string
+          mana_per_punto?: number
+          name?: string
           sort_order?: number
         }
         Relationships: []
       }
-      characters: {
+      personaggi: {
         Row: {
-          alignment_category: string | null
-          alignment_key: string | null
-          attack_category: string | null
-          attack_key: string | null
+          attacco: Database["public"]["Enums"]["stile"]
+          bonus_caratteristica_key: string
           created_at: string
-          defense_category: string | null
-          defense_key: string | null
-          discipline_points: Json
-          gender_category: string | null
-          gender_key: string | null
-          hp: number | null
+          difesa: Database["public"]["Enums"]["stile"]
+          hp: number
           id: string
-          level: number
-          mana: number | null
-          morality_category: string | null
-          morality_key: string | null
-          name: string | null
-          race_key: string | null
-          reaction_category: string | null
-          reaction_key: string | null
+          mana: number
+          name: string
+          razza_key: string
+          sesso: Database["public"]["Enums"]["sesso"]
           speed: number | null
-          status: Database["public"]["Enums"]["character_status"]
-          stirpe_key: string | null
-          trait_ambition: number | null
-          trait_curiosity: number | null
-          trait_kindness: number | null
-          trait_social: number | null
+          tribu_key: string
           updated_at: string
           user_id: string
-          via_key: string | null
+          via_key: string
         }
         Insert: {
-          alignment_category?: string | null
-          alignment_key?: string | null
-          attack_category?: string | null
-          attack_key?: string | null
+          attacco: Database["public"]["Enums"]["stile"]
+          bonus_caratteristica_key: string
           created_at?: string
-          defense_category?: string | null
-          defense_key?: string | null
-          discipline_points?: Json
-          gender_category?: string | null
-          gender_key?: string | null
-          hp?: number | null
+          difesa: Database["public"]["Enums"]["stile"]
+          hp: number
           id?: string
-          level?: number
-          mana?: number | null
-          morality_category?: string | null
-          morality_key?: string | null
-          name?: string | null
-          race_key?: string | null
-          reaction_category?: string | null
-          reaction_key?: string | null
+          mana: number
+          name: string
+          razza_key: string
+          sesso: Database["public"]["Enums"]["sesso"]
           speed?: number | null
-          status?: Database["public"]["Enums"]["character_status"]
-          stirpe_key?: string | null
-          trait_ambition?: number | null
-          trait_curiosity?: number | null
-          trait_kindness?: number | null
-          trait_social?: number | null
+          tribu_key: string
           updated_at?: string
           user_id: string
-          via_key?: string | null
+          via_key: string
         }
         Update: {
-          alignment_category?: string | null
-          alignment_key?: string | null
-          attack_category?: string | null
-          attack_key?: string | null
+          attacco?: Database["public"]["Enums"]["stile"]
+          bonus_caratteristica_key?: string
           created_at?: string
-          defense_category?: string | null
-          defense_key?: string | null
-          discipline_points?: Json
-          gender_category?: string | null
-          gender_key?: string | null
-          hp?: number | null
+          difesa?: Database["public"]["Enums"]["stile"]
+          hp?: number
           id?: string
-          level?: number
-          mana?: number | null
-          morality_category?: string | null
-          morality_key?: string | null
-          name?: string | null
-          race_key?: string | null
-          reaction_category?: string | null
-          reaction_key?: string | null
+          mana?: number
+          name?: string
+          razza_key?: string
+          sesso?: Database["public"]["Enums"]["sesso"]
           speed?: number | null
-          status?: Database["public"]["Enums"]["character_status"]
-          stirpe_key?: string | null
-          trait_ambition?: number | null
-          trait_curiosity?: number | null
-          trait_kindness?: number | null
-          trait_social?: number | null
+          tribu_key?: string
           updated_at?: string
           user_id?: string
-          via_key?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "characters_alignment_category_alignment_key_fkey"
-            columns: ["alignment_category", "alignment_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_options"
-            referencedColumns: ["category_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_attack_category_attack_key_fkey"
-            columns: ["attack_category", "attack_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_options"
-            referencedColumns: ["category_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_defense_category_defense_key_fkey"
-            columns: ["defense_category", "defense_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_options"
-            referencedColumns: ["category_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_gender_category_gender_key_fkey"
-            columns: ["gender_category", "gender_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_options"
-            referencedColumns: ["category_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_morality_category_morality_key_fkey"
-            columns: ["morality_category", "morality_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_options"
-            referencedColumns: ["category_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_race_key_fkey"
-            columns: ["race_key"]
-            isOneToOne: false
-            referencedRelation: "races"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "characters_race_key_stirpe_key_fkey"
-            columns: ["race_key", "stirpe_key"]
-            isOneToOne: false
-            referencedRelation: "stirpi"
-            referencedColumns: ["race_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_reaction_category_reaction_key_fkey"
-            columns: ["reaction_category", "reaction_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_options"
-            referencedColumns: ["category_key", "key"]
-          },
-          {
-            foreignKeyName: "characters_stirpe_key_fkey"
-            columns: ["stirpe_key"]
-            isOneToOne: false
-            referencedRelation: "stirpi"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "characters_via_key_fkey"
-            columns: ["via_key"]
-            isOneToOne: false
-            referencedRelation: "vie"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
-      discipline_groups: {
-        Row: {
-          key: string
-          name: string
-          sort_order: number
-        }
-        Insert: {
-          key: string
-          name: string
-          sort_order?: number
-        }
-        Update: {
-          key?: string
-          name?: string
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      disciplines: {
-        Row: {
-          group_key: string
-          key: string
-          name: string
-          sort_order: number
-        }
-        Insert: {
-          group_key: string
-          key: string
-          name: string
-          sort_order?: number
-        }
-        Update: {
-          group_key?: string
-          key?: string
-          name?: string
-          sort_order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "disciplines_group_key_fkey"
-            columns: ["group_key"]
-            isOneToOne: false
-            referencedRelation: "discipline_groups"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
-      game_config: {
-        Row: {
-          key: string
-          value: Json
-        }
-        Insert: {
-          key: string
-          value: Json
-        }
-        Update: {
-          key?: string
-          value?: Json
-        }
-        Relationships: []
-      }
-      races: {
-        Row: {
-          description: string
-          description_name: string
-          key: string
-          name: string
-          racial_talent_key: string | null
-          sort_order: number
-        }
-        Insert: {
-          description?: string
-          description_name?: string
-          key: string
-          name: string
-          racial_talent_key?: string | null
-          sort_order?: number
-        }
-        Update: {
-          description?: string
-          description_name?: string
-          key?: string
-          name?: string
-          racial_talent_key?: string | null
-          sort_order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "races_racial_talent_key_fkey"
-            columns: ["racial_talent_key"]
-            isOneToOne: false
-            referencedRelation: "talents"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
-      stirpi: {
-        Row: {
-          base_hp: number | null
-          base_mana: number | null
-          base_speed: number | null
-          description: string
-          key: string
-          name: string
-          race_key: string
-          sort_order: number
-          talent_key: string | null
-        }
-        Insert: {
-          base_hp?: number | null
-          base_mana?: number | null
-          base_speed?: number | null
-          description?: string
-          key: string
-          name: string
-          race_key: string
-          sort_order?: number
-          talent_key?: string | null
-        }
-        Update: {
-          base_hp?: number | null
-          base_mana?: number | null
-          base_speed?: number | null
-          description?: string
-          key?: string
-          name?: string
-          race_key?: string
-          sort_order?: number
-          talent_key?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stirpi_race_key_fkey"
-            columns: ["race_key"]
-            isOneToOne: false
-            referencedRelation: "races"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "stirpi_talent_key_fkey"
-            columns: ["talent_key"]
-            isOneToOne: false
-            referencedRelation: "talents"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
-      talents: {
-        Row: {
-          description: string
-          key: string
-          kind: string
-          name: string
-          sort_order: number
-        }
-        Insert: {
-          description?: string
-          key: string
-          kind?: string
-          name: string
-          sort_order?: number
-        }
-        Update: {
-          description?: string
-          key?: string
-          kind?: string
-          name?: string
-          sort_order?: number
-        }
-        Relationships: []
-      }
-      via_discipline_groups: {
-        Row: {
-          group_key: string
-          via_key: string
-        }
-        Insert: {
-          group_key: string
-          via_key: string
-        }
-        Update: {
-          group_key?: string
           via_key?: string
         }
         Relationships: [
           {
-            foreignKeyName: "via_discipline_groups_group_key_fkey"
-            columns: ["group_key"]
+            foreignKeyName: "personaggi_razza_key_bonus_caratteristica_key_fkey"
+            columns: ["razza_key", "bonus_caratteristica_key"]
             isOneToOne: false
-            referencedRelation: "discipline_groups"
+            referencedRelation: "razza_caratteristiche"
+            referencedColumns: ["razza_key", "caratteristica_key"]
+          },
+          {
+            foreignKeyName: "personaggi_razza_key_fkey"
+            columns: ["razza_key"]
+            isOneToOne: false
+            referencedRelation: "razze"
             referencedColumns: ["key"]
           },
           {
-            foreignKeyName: "via_discipline_groups_via_key_fkey"
+            foreignKeyName: "personaggi_razza_key_tribu_key_fkey"
+            columns: ["razza_key", "tribu_key"]
+            isOneToOne: false
+            referencedRelation: "tribu"
+            referencedColumns: ["razza_key", "key"]
+          },
+          {
+            foreignKeyName: "personaggi_via_key_fkey"
             columns: ["via_key"]
             isOneToOne: false
             referencedRelation: "vie"
             referencedColumns: ["key"]
+          },
+        ]
+      }
+      personaggio_caratteristiche: {
+        Row: {
+          caratteristica_key: string
+          personaggio_id: string
+          value: number
+        }
+        Insert: {
+          caratteristica_key: string
+          personaggio_id: string
+          value: number
+        }
+        Update: {
+          caratteristica_key?: string
+          personaggio_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personaggio_caratteristiche_caratteristica_key_fkey"
+            columns: ["caratteristica_key"]
+            isOneToOne: false
+            referencedRelation: "caratteristiche"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "personaggio_caratteristiche_personaggio_id_fkey"
+            columns: ["personaggio_id"]
+            isOneToOne: false
+            referencedRelation: "personaggi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personaggio_talenti: {
+        Row: {
+          personaggio_id: string
+          talent_key: string
+          talent_kind: string | null
+        }
+        Insert: {
+          personaggio_id: string
+          talent_key: string
+          talent_kind?: string | null
+        }
+        Update: {
+          personaggio_id?: string
+          talent_key?: string
+          talent_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personaggio_talenti_personaggio_id_fkey"
+            columns: ["personaggio_id"]
+            isOneToOne: false
+            referencedRelation: "personaggi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personaggio_talenti_talent_key_talent_kind_fkey"
+            columns: ["talent_key", "talent_kind"]
+            isOneToOne: false
+            referencedRelation: "talenti"
+            referencedColumns: ["key", "kind"]
+          },
+        ]
+      }
+      personaggio_tendenze: {
+        Row: {
+          personaggio_id: string
+          tendenza_key: string
+          value: number
+        }
+        Insert: {
+          personaggio_id: string
+          tendenza_key: string
+          value: number
+        }
+        Update: {
+          personaggio_id?: string
+          tendenza_key?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personaggio_tendenze_personaggio_id_fkey"
+            columns: ["personaggio_id"]
+            isOneToOne: false
+            referencedRelation: "personaggi"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personaggio_tendenze_tendenza_key_fkey"
+            columns: ["tendenza_key"]
+            isOneToOne: false
+            referencedRelation: "tendenze"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      razza_caratteristiche: {
+        Row: {
+          caratteristica_key: string
+          razza_key: string
+          sort_order: number
+        }
+        Insert: {
+          caratteristica_key: string
+          razza_key: string
+          sort_order?: number
+        }
+        Update: {
+          caratteristica_key?: string
+          razza_key?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "razza_caratteristiche_caratteristica_key_fkey"
+            columns: ["caratteristica_key"]
+            isOneToOne: false
+            referencedRelation: "caratteristiche"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "razza_caratteristiche_razza_key_fkey"
+            columns: ["razza_key"]
+            isOneToOne: false
+            referencedRelation: "razze"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      razze: {
+        Row: {
+          description: string
+          key: string
+          name: string
+          sort_order: number
+          talent_key: string | null
+          talent_kind: string | null
+        }
+        Insert: {
+          description?: string
+          key: string
+          name: string
+          sort_order?: number
+          talent_key?: string | null
+          talent_kind?: string | null
+        }
+        Update: {
+          description?: string
+          key?: string
+          name?: string
+          sort_order?: number
+          talent_key?: string | null
+          talent_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "razze_talent_key_talent_kind_fkey"
+            columns: ["talent_key", "talent_kind"]
+            isOneToOne: false
+            referencedRelation: "talenti"
+            referencedColumns: ["key", "kind"]
+          },
+        ]
+      }
+      sottovie: {
+        Row: {
+          description: string
+          key: string
+          level: number
+          name: string
+          talent_key: string | null
+          talent_kind: string | null
+          via_key: string
+        }
+        Insert: {
+          description?: string
+          key: string
+          level?: number
+          name: string
+          talent_key?: string | null
+          talent_kind?: string | null
+          via_key: string
+        }
+        Update: {
+          description?: string
+          key?: string
+          level?: number
+          name?: string
+          talent_key?: string | null
+          talent_kind?: string | null
+          via_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sottovie_talent_key_talent_kind_fkey"
+            columns: ["talent_key", "talent_kind"]
+            isOneToOne: false
+            referencedRelation: "talenti"
+            referencedColumns: ["key", "kind"]
+          },
+          {
+            foreignKeyName: "sottovie_via_key_fkey"
+            columns: ["via_key"]
+            isOneToOne: false
+            referencedRelation: "vie"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      talenti: {
+        Row: {
+          description: string
+          disciplina: string | null
+          key: string
+          kind: string
+          name: string
+          properties: Json
+          ramo: string | null
+          scuola: string | null
+          sort_order: number
+        }
+        Insert: {
+          description?: string
+          disciplina?: string | null
+          key: string
+          kind: string
+          name: string
+          properties?: Json
+          ramo?: string | null
+          scuola?: string | null
+          sort_order?: number
+        }
+        Update: {
+          description?: string
+          disciplina?: string | null
+          key?: string
+          kind?: string
+          name?: string
+          properties?: Json
+          ramo?: string | null
+          scuola?: string | null
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      tendenze: {
+        Row: {
+          default_value: number | null
+          description: string
+          key: string
+          max_label: string
+          max_value: number
+          min_label: string
+          min_value: number
+          name: string
+          sort_order: number
+          type: string
+        }
+        Insert: {
+          default_value?: number | null
+          description?: string
+          key: string
+          max_label?: string
+          max_value?: number
+          min_label?: string
+          min_value?: number
+          name: string
+          sort_order?: number
+          type: string
+        }
+        Update: {
+          default_value?: number | null
+          description?: string
+          key?: string
+          max_label?: string
+          max_value?: number
+          min_label?: string
+          min_value?: number
+          name?: string
+          sort_order?: number
+          type?: string
+        }
+        Relationships: []
+      }
+      tribu: {
+        Row: {
+          base_speed: number | null
+          description: string
+          key: string
+          name: string
+          razza_key: string
+          sort_order: number
+          talent_key: string | null
+          talent_kind: string | null
+        }
+        Insert: {
+          base_speed?: number | null
+          description?: string
+          key: string
+          name: string
+          razza_key: string
+          sort_order?: number
+          talent_key?: string | null
+          talent_kind?: string | null
+        }
+        Update: {
+          base_speed?: number | null
+          description?: string
+          key?: string
+          name?: string
+          razza_key?: string
+          sort_order?: number
+          talent_key?: string | null
+          talent_kind?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tribu_razza_key_fkey"
+            columns: ["razza_key"]
+            isOneToOne: false
+            referencedRelation: "razze"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "tribu_talent_key_talent_kind_fkey"
+            columns: ["talent_key", "talent_kind"]
+            isOneToOne: false
+            referencedRelation: "talenti"
+            referencedColumns: ["key", "kind"]
           },
         ]
       }
       vie: {
         Row: {
           description: string
-          first_talent_key: string | null
           key: string
           name: string
-          per_level_hp: number
-          per_level_mana: number
-          per_level_speed: number
           sort_order: number
         }
         Insert: {
           description?: string
-          first_talent_key?: string | null
           key: string
           name: string
-          per_level_hp?: number
-          per_level_mana?: number
-          per_level_speed?: number
           sort_order?: number
         }
         Update: {
           description?: string
-          first_talent_key?: string | null
           key?: string
           name?: string
-          per_level_hp?: number
-          per_level_mana?: number
-          per_level_speed?: number
           sort_order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vie_first_talent_key_fkey"
-            columns: ["first_talent_key"]
-            isOneToOne: false
-            referencedRelation: "talents"
-            referencedColumns: ["key"]
-          },
-        ]
-      }
-      wizard_categories: {
-        Row: {
-          description: string
-          key: string
-          sort_order: number
-          step: number
-          title: string
-        }
-        Insert: {
-          description?: string
-          key: string
-          sort_order?: number
-          step: number
-          title: string
-        }
-        Update: {
-          description?: string
-          key?: string
-          sort_order?: number
-          step?: number
-          title?: string
         }
         Relationships: []
-      }
-      wizard_options: {
-        Row: {
-          category_key: string
-          description: string
-          key: string
-          name: string
-          sort_order: number
-        }
-        Insert: {
-          category_key: string
-          description?: string
-          key: string
-          name: string
-          sort_order?: number
-        }
-        Update: {
-          category_key?: string
-          description?: string
-          key?: string
-          name?: string
-          sort_order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wizard_options_category_key_fkey"
-            columns: ["category_key"]
-            isOneToOne: false
-            referencedRelation: "wizard_categories"
-            referencedColumns: ["key"]
-          },
-        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      crea_personaggio: {
+        Args: {
+          p_attacco: Database["public"]["Enums"]["stile"]
+          p_bonus_caratteristica: string
+          p_caratteristiche: Json
+          p_difesa: Database["public"]["Enums"]["stile"]
+          p_name: string
+          p_razza_key: string
+          p_sesso: Database["public"]["Enums"]["sesso"]
+          p_talenti: string[]
+          p_tendenze: Json
+          p_tribu_key: string
+          p_via_key: string
+        }
+        Returns: string
+      }
+      talenti_a_scelta: { Args: { p_via_key: string }; Returns: number }
     }
     Enums: {
-      character_status: "draft" | "completed"
+      sesso: "maschio" | "femmina"
+      stile: "fisico" | "magico"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -666,7 +656,8 @@ export const Constants = {
   },
   public: {
     Enums: {
-      character_status: ["draft", "completed"],
+      sesso: ["maschio", "femmina"],
+      stile: ["fisico", "magico"],
     },
   },
 } as const

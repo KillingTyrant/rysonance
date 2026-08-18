@@ -1,63 +1,58 @@
-import { Badge } from "@/components/ui/badge";
-import { disciplineGroupsForVia, viaByKey } from "@/lib/onboarding/rules";
-import type { Catalog } from "@/lib/onboarding/types";
-import type { WizardState } from "@/lib/onboarding/wizard-state";
+import { talentiDaScegliere, talentoIniziale } from "@/lib/onboarding/selectors";
 
 import { OptionCard } from "../option-card";
 import { StepSection } from "../step-section";
+import type { StepProps } from "../wizard-steps";
 
-type ViaStepProps = {
-  catalog: Catalog;
-  state: WizardState;
-  onVia: (viaKey: string) => void;
-};
-
-export function ViaStep({ catalog, state, onVia }: ViaStepProps) {
-  const via = viaByKey(catalog, state.via_key);
-
+/**
+ * La Via: il percorso di crescita. Ogni via ha una sottovia per livello; quella
+ * di livello 0 porta il talento con cui il personaggio comincia — ed è anche ciò
+ * che decide quanti talenti si potranno scegliere più avanti, perciò questo step
+ * precede quello dei talenti.
+ */
+export function ViaStep({ catalog, draft, onChange }: StepProps) {
   return (
-    <div className="flex flex-col gap-8">
-      <StepSection
-        title="La Via"
-        description="Determina la crescita a ogni livello e il primo talento."
-        hint="Decide anche quali gruppi di discipline potrai usare nello step 5: cambiandola, gli slot già spesi su discipline non più disponibili tornano indietro."
-      >
-        <div className="grid gap-3 lg:grid-cols-3">
-          {catalog.vie.map((option) => (
+    <StepSection
+      title="La Via"
+      description="Il percorso che il personaggio seguirà crescendo di livello."
+    >
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {catalog.vie.map((via) => {
+          const iniziale = talentoIniziale(via);
+          const livelli = via.sottovie.filter((sottovia) => sottovia.level > 0).length;
+
+          return (
             <OptionCard
-              key={option.key}
-              title={option.name}
-              description={option.description || undefined}
-              selected={state.via_key === option.key}
-              onSelect={() => onVia(option.key)}
+              key={via.key}
+              title={via.name}
+              description={via.description || undefined}
               meta={
-                <span className="flex flex-col gap-2">
-                  <span className="text-xs text-muted-foreground">
-                    Per livello: +{option.per_level_hp} HP, +{option.per_level_mana}{" "}
-                    mana, +{option.per_level_speed} velocità
+                <span className="flex flex-col gap-0.5 text-sm text-muted-foreground">
+                  {iniziale && (
+                    <span>
+                      Talento iniziale:{" "}
+                      <span className="text-foreground">{iniziale.name}</span>
+                    </span>
+                  )}
+                  <span>
+                    <span className="text-foreground">{talentiDaScegliere(via)}</span>{" "}
+                    talenti a scelta
                   </span>
-                  <span className="flex flex-wrap gap-1">
-                    {disciplineGroupsForVia(catalog, option.key).map((group) => (
-                      <Badge key={group.key} variant="secondary">
-                        {group.name}
-                      </Badge>
-                    ))}
-                  </span>
+                  {livelli > 0 && (
+                    <span>
+                      {livelli === 1
+                        ? "1 livello successivo già definito"
+                        : `${livelli} livelli successivi già definiti`}
+                    </span>
+                  )}
                 </span>
               }
+              selected={draft.via_key === via.key}
+              onSelect={() => onChange({ via_key: via.key })}
             />
-          ))}
-        </div>
-
-        {via?.firstTalent && (
-          <p className="text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">
-              Primo talento: {via.firstTalent.name}
-            </span>{" "}
-            {via.firstTalent.description}
-          </p>
-        )}
-      </StepSection>
-    </div>
+          );
+        })}
+      </div>
+    </StepSection>
   );
 }
