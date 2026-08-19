@@ -14,7 +14,7 @@ export async function Hero() {
   const user = data?.claims;
 
   return (
-    <div className="flex flex-col gap-16 items-center w-full">
+    <div className="flex flex-col gap-16 items-center max-w-4xl w-full text-center">
       <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
       {/*
         Il vincolo è sulla larghezza, non sull'altezza: il viewBox è 5,23:1,
@@ -33,7 +33,7 @@ export async function Hero() {
           </Button>
         </div>
       ) : (
-        <Button asChild variant="ticket" className="w-52">
+        <Button asChild variant="ticket" className="w-full">
           <Link href="/auth/login">Accedi</Link>
         </Button>
       )}

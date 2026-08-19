@@ -19,11 +19,9 @@ export function SignUpSuccess({ className, ...props }: React.ComponentPropsWitho
                         You&apos;ve successfully signed up. Please check your email to
                         confirm your account before signing in.
                     </p>
-                    <Link href="/auth/login">
-                        <Button className="mt-4 w-full" variant="ticket">
-                            Go to Login
-                        </Button>
-                    </Link>
+                    <Button asChild variant="ticket" className="w-full">
+                        <Link href="/auth/login">Accedi</Link>
+                    </Button>
                 </CardContent>
             </Card>
         </div>
