@@ -28,16 +28,15 @@ export async function Hero() {
       </h1>
       {user ? (
         <div className="flex items-center gap-4">
-          <Button asChild variant="default">
-            <Link href="/onboarding">Onboarding</Link>
-          </Button>
-          <Button asChild variant="secondary">
+          <Button asChild variant="ticket" className="w-52">
             <Link href="/lobby">Lobby</Link>
           </Button>
         </div>
-      ) : <Suspense>
-        <AuthButton />
-      </Suspense>}
+      ) : (
+        <Button asChild variant="ticket" className="w-52">
+          <Link href="/auth/login">Accedi</Link>
+        </Button>
+      )}
       <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
     </div>
   );

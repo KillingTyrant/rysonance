@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+
+import { AuthButton } from "../auth/auth-button";
+import { Suspense } from "react";
 
 
 export async function Nav() {
@@ -14,9 +16,13 @@ export async function Nav() {
                     >
                         <Logo className="h-5 w-auto shrink-0" />
                     </Link>
+
                 </div>
                 <div className="w-full flex justify-end items-center gap-5">
-                    <ThemeSwitcher />
+                    <Suspense>
+                        <AuthButton />
+                    </Suspense>
+
                 </div>
             </div>
         </nav>

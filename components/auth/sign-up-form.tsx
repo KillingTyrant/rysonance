@@ -35,7 +35,7 @@ export function SignUpForm({
     setError(null);
 
     if (password !== repeatPassword) {
-      setError("Passwords do not match");
+      setError("Le password non coincidono");
       setIsLoading(false);
       return;
     }
@@ -45,7 +45,7 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
+          emailRedirectTo: `${window.location.origin}/onboarding`,
         },
       });
       if (error) throw error;
@@ -59,16 +59,18 @@ export function SignUpForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="border-0">
         <CardHeader>
-          <CardTitle className="text-2xl">Registrati</CardTitle>
-          <CardDescription>Crea un nuovo account</CardDescription>
+          <CardTitle className="text-5xl font-bold">Di vuoto e draghi</CardTitle>
+          <CardDescription className="text-xl">
+            Registrati e crea un eroe di Rysonance per completare la quest di Prince Doji e ottenere la ricompensa.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="hidden">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -79,33 +81,42 @@ export function SignUpForm({
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
-                </div>
+                <Label htmlFor="password" className="hidden">Password</Label>
                 <Input
                   id="password"
                   type="password"
+                  placeholder="Password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="repeat-password">Repeat Password</Label>
-                </div>
+                <Label htmlFor="repeat-password" className="hidden">
+                  Ripeti la password
+                </Label>
                 <Input
                   id="repeat-password"
                   type="password"
+                  placeholder="Ripeti la password"
                   required
                   value={repeatPassword}
                   onChange={(e) => setRepeatPassword(e.target.value)}
                 />
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full" disabled={isLoading} variant={'ticket'}>
                 {isLoading ? "Creazione in corso..." : "Registrati"}
               </Button>
+              <div className="text-center text-sm">
+                Hai già un account?{" "}
+                <Link
+                  href="/auth/login"
+                  className="underline underline-offset-4"
+                >
+                  Accedi
+                </Link>
+              </div>
               <div className="relative text-center text-sm">
                 <span className="absolute inset-0 top-1/2 border-t" />
                 <span className="relative bg-card px-2 text-muted-foreground">
@@ -113,12 +124,6 @@ export function SignUpForm({
                 </span>
               </div>
               <GoogleSignInButton />
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Hai già un account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Accedi
-              </Link>
             </div>
           </form>
         </CardContent>

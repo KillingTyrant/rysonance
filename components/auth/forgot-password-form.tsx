@@ -47,7 +47,7 @@ export function ForgotPasswordForm({
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       {success ? (
-        <Card>
+        <Card className="border-0">
           <CardHeader>
             <CardTitle className="text-2xl">Controlla la tua email</CardTitle>
             <CardDescription>Istruzioni per reimpostare la password inviate</CardDescription>
@@ -60,10 +60,10 @@ export function ForgotPasswordForm({
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="border-0">
           <CardHeader>
-            <CardTitle className="text-2xl">Reimposta la tua password</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-5xl">Reimposta la tua password</CardTitle>
+            <CardDescription className="text-xl">
               Inserisci la tua email e ti invieremo un link per reimpostare la
               password
             </CardDescription>
@@ -72,7 +72,7 @@ export function ForgotPasswordForm({
             <form onSubmit={handleForgotPassword}>
               <div className="flex flex-col gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="hidden">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -83,7 +83,7 @@ export function ForgotPasswordForm({
                   />
                 </div>
                 {error && <p className="text-sm text-destructive">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading} variant="ticket">
                   {isLoading ? "Invio in corso..." : "Invia email per reimpostare la password"}
                 </Button>
               </div>

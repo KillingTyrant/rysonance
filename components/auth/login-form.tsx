@@ -56,7 +56,7 @@ export function LoginForm({
         <CardHeader>
           <CardTitle className="text-5xl font-bold">Di vuoto e draghi</CardTitle>
           <CardDescription className="text-xl">
-            Crea un eroe di Rysonance per completare la quest di Prince Doji e ottenere la ricompensa.
+            Accedi e crea un eroe di Rysonance per completare la quest di Prince Doji e ottenere la ricompensa.
           </CardDescription>
         </CardHeader>
         <CardContent>
