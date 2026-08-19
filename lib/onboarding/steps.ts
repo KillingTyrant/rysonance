@@ -22,13 +22,14 @@ export type StepDef = {
  * step → componente sta in `components/onboarding/wizard-steps.tsx`, dove il
  * compilatore la verifica esaustiva contro `StepId`.
  *
- * `riepilogo` non ha campi propri: mostra i problemi di tutti gli altri.
+ * `riepilogo` mostra i problemi di tutti gli altri e raccoglie solo il nome:
+ * si sceglie per ultimo, a eroe completo.
  */
 export const WIZARD_STEPS = [
   {
     id: "identita",
     title: "Identità",
-    fields: ["name", "sesso", "razza_key", "tribu_key"],
+    fields: ["sesso", "razza_key", "tribu_key"],
   },
   { id: "via", title: "La Via", fields: ["via_key"] },
   {
@@ -39,7 +40,7 @@ export const WIZARD_STEPS = [
   { id: "combattimento", title: "Combattimento", fields: ["attacco", "difesa"] },
   { id: "talenti", title: "Talenti", fields: ["talenti"] },
   { id: "carattere", title: "Carattere", fields: ["tendenze"] },
-  { id: "riepilogo", title: "Riepilogo", fields: [] },
+  { id: "riepilogo", title: "Riepilogo", fields: ["name"] },
 ] as const satisfies readonly StepDef[];
 
 export type StepId = (typeof WIZARD_STEPS)[number]["id"];

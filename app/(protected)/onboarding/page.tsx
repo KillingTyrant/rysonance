@@ -2,7 +2,7 @@ import { PersonaggioWizard } from "@/components/onboarding/personaggio-wizard";
 import { getCatalog } from "@/lib/onboarding/catalog";
 
 export const metadata = {
-  title: "Crea il tuo personaggio · Rysonance",
+  title: "Creazione dell'eroe · Rysonance",
 };
 
 /**
@@ -14,7 +14,7 @@ export default async function OnboardingPage() {
   const catalog = await getCatalog();
 
   return (
-    <div className="flex w-full flex-col items-center">
+    <div className="flex w-full flex-1 flex-col items-center">
       <PersonaggioWizard catalog={catalog} />
     </div>
   );

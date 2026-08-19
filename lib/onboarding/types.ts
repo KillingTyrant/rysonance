@@ -18,8 +18,8 @@ export type Stile = Database["public"]["Enums"]["stile"];
  * codice invece che in `supabase/seeds`.
  */
 export const SESSI: readonly { key: Sesso; name: string }[] = [
-  { key: "maschio", name: "Maschio" },
-  { key: "femmina", name: "Femmina" },
+  { key: "maschio", name: "M" },
+  { key: "femmina", name: "F" },
 ] as const;
 
 export const STILI: readonly { key: Stile; name: string }[] = [
