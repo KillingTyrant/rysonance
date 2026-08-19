@@ -52,18 +52,18 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="border-0">
         <CardHeader>
-          <CardTitle className="text-2xl">Accedi</CardTitle>
-          <CardDescription>
-            Inserisci le tue credenziali per accedere al tuo account.
+          <CardTitle className="text-5xl font-bold">Di vuoto e draghi</CardTitle>
+          <CardDescription className="text-xl">
+            Crea un eroe di Rysonance per completare la quest di Prince Doji e ottenere la ricompensa.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="hidden">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -74,8 +74,9 @@ export function LoginForm({
                 />
               </div>
               <div className="grid gap-2">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="hidden">Password</Label>
+
                   <Link
                     href="/auth/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
@@ -91,10 +92,19 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={isLoading} variant={'ticket'}>
                 {isLoading ? "Accesso in corso..." : "Accedi"}
               </Button>
+              <div className="text-center text-sm">
+                Non hai un account?{" "}
+                <Link
+                  href="/auth/sign-up"
+                  className="underline underline-offset-4"
+                >
+                  Registrati
+                </Link>
+              </div>
               <div className="relative text-center text-sm">
                 <span className="absolute inset-0 top-1/2 border-t" />
                 <span className="relative bg-card px-2 text-muted-foreground">
@@ -103,15 +113,7 @@ export function LoginForm({
               </div>
               <GoogleSignInButton />
             </div>
-            <div className="mt-4 text-center text-sm">
-              Non hai un account?{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
-                Registrati
-              </Link>
-            </div>
+
           </form>
         </CardContent>
       </Card>

@@ -18,7 +18,7 @@ export async function PersonaggioList() {
     personaggi = await listPersonaggi();
   } catch {
     return (
-      <p className="text-sm text-red-500">
+      <p className="text-sm text-destructive">
         Non è stato possibile caricare i personaggi. Ricarica la pagina.
       </p>
     );

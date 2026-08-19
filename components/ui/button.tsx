@@ -19,6 +19,10 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        ticket:
+          "btn-ticket font-bold text-black [--ticket-bg:#FFBA30] hover:[--ticket-bg:#E6A72B]",
+        ticketSecondary:
+          "btn-ticket font-bold text-secondary-foreground [--ticket-bg:hsl(var(--secondary))] [--ticket-notch:0.5rem] hover:[--ticket-bg:hsl(var(--secondary)/0.8)]",
       },
       size: {
         default: "h-9 px-4 py-2",

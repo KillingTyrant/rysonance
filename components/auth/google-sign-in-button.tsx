@@ -63,7 +63,7 @@ export function GoogleSignInButton({
     <div className={cn("flex flex-col gap-2", className)}>
       <Button
         type="button"
-        variant="outline"
+        variant="ticketSecondary"
         className="w-full"
         onClick={handleSignIn}
         disabled={isLoading}
@@ -71,7 +71,7 @@ export function GoogleSignInButton({
         <GoogleLogo />
         {isLoading ? "Reindirizzamento..." : "Continua con Google"}
       </Button>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

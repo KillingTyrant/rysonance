@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
@@ -13,10 +13,11 @@ export const metadata: Metadata = {
   description: "Rysonance description",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const cabinetGrotesk = localFont({
+  src: "./fonts/CabinetGrotesk-Variable.woff2",
+  variable: "--font-cabinet",
   display: "swap",
-  subsets: ["latin"],
+  weight: "100 900",
 });
 
 export default function RootLayout({
@@ -26,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`} suppressHydrationWarning>
+      <body className={`${cabinetGrotesk.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
