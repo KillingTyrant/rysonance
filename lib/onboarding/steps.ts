@@ -9,14 +9,12 @@ export type StepDef = {
 
 /**
  * Gli step del wizard, come DATI, nell'ordine in cui si crea un eroe: chi è,
- * la Via che percorrerà, le Caratteristiche, come combatte, i talenti e infine
- * il carattere. Ogni step dichiara quali campi raccoglie: da qui derivano il
- * gate di "Avanti", l'elenco di cosa manca e le spunte dello stepper, senza che
- * nessuna di quelle regole venga riscritta a mano.
+ * la Via che percorrerà e i talenti. Ogni step dichiara quali campi raccoglie:
+ * da qui derivano il gate di "Avanti", l'elenco di cosa manca e le spunte
+ * della hub, senza che nessuna di quelle regole venga riscritta a mano.
  *
- * L'ordine non è solo estetico: le Caratteristiche candidate al +1 dipendono
- * dalla razza, e quanti talenti si scelgono dipende dalla Via — entrambe
- * chieste prima di chi le usa.
+ * L'ordine non è solo estetico: quanti talenti si scelgono dipende dalla Via —
+ * chiesta prima di chi la usa.
  *
  * Niente React qui dentro: questo modulo è importato anche dal server. La mappa
  * step → componente sta in `components/onboarding/wizard-steps.tsx`, dove il
@@ -32,14 +30,7 @@ export const WIZARD_STEPS = [
     fields: ["sesso", "razza_key", "tribu_key"],
   },
   { id: "via", title: "La Via", fields: ["via_key"] },
-  {
-    id: "caratteristiche",
-    title: "Caratteristiche",
-    fields: ["caratteristiche", "bonus_caratteristica_key"],
-  },
-  { id: "combattimento", title: "Combattimento", fields: ["attacco", "difesa"] },
   { id: "talenti", title: "Talenti", fields: ["talenti"] },
-  { id: "carattere", title: "Carattere", fields: ["tendenze"] },
   { id: "riepilogo", title: "Riepilogo", fields: ["name"] },
 ] as const satisfies readonly StepDef[];
 
@@ -67,9 +58,4 @@ export function problemsForStep(problems: Problem[], id: StepId): Problem[] {
 
 export function isStepComplete(problems: Problem[], id: StepId): boolean {
   return problemsForStep(problems, id).length === 0;
-}
-
-/** Il primo step con qualcosa di irrisolto; il riepilogo se non ce n'è nessuno. */
-export function firstIncompleteStep(problems: Problem[]): StepId {
-  return WIZARD_STEPS.find((step) => !isStepComplete(problems, step.id))?.id ?? LAST_STEP;
 }

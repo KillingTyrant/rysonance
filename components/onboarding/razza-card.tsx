@@ -1,9 +1,9 @@
 import type { ComponentType, ReactNode } from "react";
-import { Droplet, Footprints, Heart } from "lucide-react";
+import { Footprints } from "lucide-react";
 
 import { cardVariants } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { Razza, Stats } from "@/lib/onboarding/types";
+import type { Razza } from "@/lib/onboarding/types";
 
 type RazzaCardProps = {
   razza: Razza;
@@ -11,10 +11,10 @@ type RazzaCardProps = {
   /** La tribù scelta. Se non è di questa razza, nessuna appare selezionata. */
   tribuKey: string | null;
   disabled?: boolean;
-  /** Perché la razza non è scegliibile (mostrato sulla copertina). */
+  /** Perché la razza non è selezionabile (mostrato sulla copertina). */
   disabledReason?: string;
-  /** Le statistiche che il personaggio avrebbe con le scelte fatte finora. */
-  stats?: Stats;
+  /** La velocità della tribù scelta, se è di questa razza. */
+  speed?: number | null;
   /** L'illustrazione della razza, a tutta card (vedi docs/immagini_catalogo.md). */
   media?: ReactNode;
   onSelect: () => void;
@@ -24,7 +24,7 @@ type RazzaCardProps = {
 /**
  * La card di scelta della razza, nei suoi due stati: chiusa mostra solo
  * copertina e nome, aperta contiene la scelta della sottorazza — la tribù — e
- * le statistiche che ne derivano.
+ * la velocità che ne deriva.
  *
  * Aperto e chiuso non sono un prop: la card è aperta quando è la razza scelta.
  * È l'unico modo per cui la tribù, che appartiene alla razza, non possa essere
@@ -36,7 +36,7 @@ export function RazzaCard({
   tribuKey,
   disabled = false,
   disabledReason,
-  stats,
+  speed,
   media,
   onSelect,
   onSelectTribu,
@@ -128,9 +128,7 @@ export function RazzaCard({
           </div>
 
           <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-            <Statistica icon={Heart} label="Punti Vita" value={stats?.hp} />
-            <Statistica icon={Droplet} label="Mana" value={stats?.mana} />
-            <Statistica icon={Footprints} label="Movimento" value={stats?.speed} />
+            <Statistica icon={Footprints} label="Movimento" value={speed} />
           </dl>
         </div>
       )}

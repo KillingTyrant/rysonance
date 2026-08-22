@@ -2,24 +2,23 @@
 
 Come funziona l'onboarding, dall'alto verso il basso.
 
-## 0. I sette passi, e perché in quest'ordine
+## 0. I quattro passi, e perché in quest'ordine
 
-La creazione di un eroe comincia da chi è e finisce da com'è fatto dentro:
+La creazione parte da una hub ("Creazione dell'eroe") che elenca i macro-passi: ognuno
+si apre con una schermata introduttiva e contiene i suoi step. Le righe della hub si
+sbloccano completando le precedenti (`isGroupUnlocked`), e la CTA "Crea Eroe" porta al
+riepilogo quando tutto è completo.
 
-| # | step | cosa raccoglie |
+| macro-passo | step | cosa raccoglie |
 |---|---|---|
-| 1 | Identità | `name`, `sesso`, `razza_key`, `tribu_key` |
-| 2 | La Via | `via_key` |
-| 3 | Caratteristiche | i 4 punti da distribuire e su quale Caratteristica cade il +1 della razza |
-| 4 | Combattimento | `attacco` e `difesa`, fisici o magici |
-| 5 | Talenti | i talenti a scelta |
-| 6 | Carattere | allineamento, moralità e i quattro assi di carattere |
-| 7 | Riepilogo | niente: mostra i problemi degli altri |
+| Scegli la tua razza | Identità | `sesso`, `razza_key`, `tribu_key` |
+| Scegli la tua Via | La Via | `via_key` |
+| Scegli i tuoi talenti | Talenti | i talenti a scelta |
+| — (CTA della hub) | Riepilogo | `name`: l'ultima scelta, a eroe completo |
 
-L'ordine non è solo estetico, ci sono due dipendenze vere: le Caratteristiche su cui
-può cadere il +1 dipendono dalla **razza**, e quanti talenti si scelgono dipende dalla
-**Via** — entrambe chieste prima di chi le usa. Cambiare una scelta a monte invalida
-quelle a valle, e se ne occupa `handleChange` (vedi *Coerenza fra campi*).
+L'ordine non è solo estetico, c'è una dipendenza vera: quanti talenti si scelgono
+dipende dalla **Via** — chiesta prima di chi la usa. Cambiare una scelta a monte
+invalida quelle a valle, e se ne occupa `handleChange` (vedi *Coerenza fra campi*).
 
 ## 1. Il catalogo — dati statici, letti a build time
 
@@ -32,9 +31,8 @@ quelle a valle, e se ne occupa `handleChange` (vedi *Coerenza fra campi*).
 - Usa un client Supabase anonimo, senza cookie: tutte le tabelle di catalogo hanno RLS
   con policy `for select to anon using (true)`, quindi la lettura non dipende dalla
   request — condizione necessaria perché sia prerenderizzabile.
-- Legge **otto** tabelle (`talenti`, `caratteristiche`, `razze`, `razza_caratteristiche`,
-  `tribu`, `vie`, `sottovie`, `tendenze`) con le colonne elencate una per una, e le
-  ricompone: razza → tribù + Caratteristiche candidate al +1, via → sottovie, ciascuna
+- Legge **cinque** tabelle (`talenti`, `razze`, `tribu`, `vie`, `sottovie`) con le
+  colonne elencate una per una, e le ricompone: razza → tribù, via → sottovie, ciascuna
   col proprio talento.
 - Non usa l'embedding PostgREST perché il legame verso i talenti è una FK **composta**
   `(talent_key, talent_kind)`, che l'embedding non risolve.
@@ -66,8 +64,8 @@ valido" dell'applicazione. Restituisce una lista di `Problem`, ognuno legato a u
 |---|---|
 | bottone "Avanti" | `problemsForStep(problems, step)` è vuoto |
 | "Manca: Razza, Tribù" | le `label` dei problemi di quello step |
-| spunte dello stepper | `isStepComplete` per ogni step |
-| limite di navigazione | `firstIncompleteStep(problems)` |
+| spunte e sblocco delle righe della hub | `isGroupComplete` / `isGroupUnlocked` |
+| CTA "Crea Eroe" | `allGroupsComplete(problems)` |
 | riepilogo | i problemi di tutti gli step, con il link per andarci |
 | server action | la **stessa** `validateDraft`, prima di scrivere |
 
@@ -92,46 +90,10 @@ dice, invece di bloccare il cambio.
 | cambia | viene tolto |
 |---|---|
 | razza | la tribù, se era di un'altra razza |
-| razza | il +1, se la nuova razza non lo offre su quella Caratteristica |
 | Via | i talenti in eccesso, se la nuova Via ne dà meno |
 
-Le prime due sono anche FK composte nel database (`(razza_key, tribu_key)` e
-`(razza_key, bonus_caratteristica_key)`): il wizard evita il vicolo cieco, il DB
-garantisce che non ci si possa arrivare per altre strade.
-
-### Le Caratteristiche
-
-Sei Caratteristiche Base, **4 punti** da distribuire più **+1** dalla razza, con il tetto
-di **3** per Caratteristica alla creazione (bonus incluso).
-
-Il draft tiene solo i punti **distribuiti**: il +1 non ci viene sommato dentro, si vede
-sommato a schermo e lo somma la RPC. È la stessa forma che riceve `crea_personaggio`,
-quindi il valore finale è calcolato in un posto solo (`valoriCaratteristiche`) e non può
-divergere fra UI e database.
-
-Punti Ferita e Mana **derivano interamente dalle Caratteristiche**, con il moltiplicatore
-scritto nel catalogo (`caratteristiche.hp_per_punto` / `mana_per_punto`): né la RPC né il
-wizard conoscono le chiavi `vigore` ed `empatia_arcana`. Alla tribù resta solo
-`base_speed`. Gli altri effetti (Forza → danno fisico, Destrezza → probabilità di colpire
-e movimento) vivono ancora nella descrizione della Caratteristica: diventeranno struttura
-quando servirà al motore di combattimento.
-
-I due numeri della creazione vivono in due punti che devono restare allineati:
-`PUNTI_CARATTERISTICHE` / `CARATTERISTICA_MAX` (`validate.ts`) e i check dentro
-`crea_personaggio`. Non sono `check` di tabella perché valgono **alla creazione**:
-salendo di livello i valori supereranno 3, e un vincolo di riga lo impedirebbe per sempre.
-
-### Attacco e difesa
-
-Il combattimento è sempre una contrapposizione fra attacco e difesa, e da lì partono
-talenti, magie e combo. Ciascuno dei due è fisico (arma o oggetto fisico) o magico (magia
-o oggetto magico), e sono **due assi indipendenti**: si può attaccare con l'acciaio e
-difendersi con la magia.
-
-Sono l'enum `public.stile` e due colonne di `personaggi`, non righe di catalogo: due
-valori chiusi dalle regole, come `sesso`. Le etichette stanno in `STILI`
-(`lib/onboarding/types.ts`) — insieme a `SESSI`, sono gli unici testi di gioco che
-vivono nel codice invece che in `supabase/seeds`.
+La prima è anche una FK composta nel database (`(razza_key, tribu_key)`): il wizard evita
+il vicolo cieco, il DB garantisce che non ci si possa arrivare per altre strade.
 
 ### I talenti
 
@@ -156,13 +118,6 @@ Servono a cercare (`TalentiStep` filtra su nome + tutte e tre, senza accenti) e 
 l'elenco in blocchi per disciplina, altrimenti sarebbero 254 card di fila. Lo step resta
 uno solo: l'utente non sceglie prima una scuola e poi un talento.
 
-### Il carattere
-
-Allineamento, moralità e i quattro assi di carattere sono **assi fra due poli**, non
-elenchi di opzioni: `TendenzaSlider` li disegna tutti, e l'elenco lo decide
-`public.tendenze`. Per questo "neutrale" non esiste come voce — è il centro dell'asse. Se
-`min_value = max_value` la tendenza è fissa e lo slider è disabilitato.
-
 ## 3. Il salvataggio — server action + RPC transazionale
 
 `handleSave` manda il draft a `salvaPersonaggio`
@@ -178,42 +133,32 @@ non sopravvivono al confine di rete. Delega a `creaPersonaggio`
 3. `validateDraft` — le stesse regole della UI;
 4. `supabase.rpc("crea_personaggio", …)`.
 
-La scrittura tocca quattro tabelle e PostgREST non fa transazioni multi-statement: il
+La scrittura tocca due tabelle e PostgREST non fa transazioni multi-statement: il
 confine transazionale è la funzione `public.crea_personaggio`
 (`supabase/schemas/21_rpc.sql`), che è anche il posto in cui il database decide da sé le
 cose di cui il client non è fidato:
 
 - `user_id` da `auth.uid()`;
-- i valori finali delle Caratteristiche (punti + bonus), una riga per **ogni**
-  Caratteristica di catalogo;
-- PF e Mana, calcolati da quei valori con i moltiplicatori del catalogo; la velocità
-  copiata da `tribu.base_speed`;
-- una riga di `personaggio_tendenze` per **ogni** tendenza di catalogo (i valori mancanti
-  cadono sul default, quelli fuori scala vengono riportati dentro i limiti);
+- la velocità copiata da `tribu.base_speed`;
 - i talenti scelti, deduplicati e rifiutati se non sono esattamente quanti ne dà la Via.
 
 ## 4. La rete di sicurezza nel DB
 
 `supabase/schemas/20_personaggi.sql` è l'ultimo strato:
 
-- RLS per owner su tutte e quattro le operazioni; sulle tre tabelle figlie
-  (`personaggio_caratteristiche`, `personaggio_tendenze`, `personaggio_talenti`)
-  l'ownership è indiretta e passa da `personaggi`;
+- RLS per owner su tutte e quattro le operazioni; su `personaggio_talenti` l'ownership è
+  indiretta e passa da `personaggi`;
 - la FK composta `(razza_key, tribu_key) → tribu(razza_key, key)`: il DB rifiuta una tribù
   che non appartiene alla razza scelta;
-- la FK composta `(razza_key, bonus_caratteristica_key) → razza_caratteristiche`: il +1 può
-  cadere solo su una Caratteristica che quella razza offre davvero;
 - la FK composta `(talent_key, talent_kind) → talenti(key, kind)` con `talent_kind`
   colonna generata costante `'scelta'`: come nel catalogo, è ciò che impedisce di
   scegliersi un talento di razza o di via;
-- il trigger `personaggio_tendenze_check_value`: il limite di una tendenza sta su un'altra
-  riga, quindi non è esprimibile con un `check`. **Non è ridondante**: la RLS concede
-  `update` all'owner, quindi senza trigger un utente autenticato potrebbe fare una `PATCH`
-  diretta a PostgREST col proprio JWT e scavalcare del tutto la server action;
-- il trigger `personaggio_talenti_check_count`, per lo stesso motivo: tiene il tetto ai
-  talenti che la Via concede — il numero lo chiede a `public.talenti_a_scelta`, non lo
-  conosce. Il minimo invece lo garantisce `crea_personaggio`, che li inserisce tutti nella
-  stessa transazione;
+- il trigger `personaggio_talenti_check_count`: tiene il tetto ai talenti che la Via
+  concede — il numero lo chiede a `public.talenti_a_scelta`, non lo conosce. **Non è
+  ridondante**: la RLS concede l'insert all'owner, quindi senza trigger un utente
+  autenticato potrebbe aggiungersi talenti con una richiesta diretta a PostgREST col
+  proprio JWT, scavalcando la server action. Il minimo invece lo garantisce
+  `crea_personaggio`, che li inserisce tutti nella stessa transazione;
 - `describeError` (`personaggi.ts`) mappa il nome del vincolo — estratto via regex dal
   messaggio PostgREST, l'unico posto in cui compare — in un messaggio leggibile. Se
   l'utente ne vede uno, significa che il catalogo è cambiato sotto i piedi di una pagina
@@ -226,18 +171,20 @@ cose di cui il client non è fidato:
   scelta sono `not null`, e questo è ciò che tiene il TypeScript a valle libero da
   null-guard difensivi. Se le bozze serviranno, sono un concetto diverso — non uno stato
   di `personaggi`.
-- **Nessun livello**: il personaggio nasce con le Caratteristiche che ha scelto. La
-  progressione è già modellata nel catalogo (`sottovie.level`, una sottovia per livello),
-  ma non c'è ancora codice che la applichi. Per la stessa ragione, dei talenti di via il
-  catalogo contiene solo i tre di livello 0: gli altri (17 del Combattente, 14 del
-  Viandante, 13 del Sapiente) esistono nelle schede di gioco ma non hanno ancora una
-  sottovia che li porti.
-- **Nessuna base fissa di PF e Mana**: derivano solo dalle Caratteristiche, quindi alla
-  creazione stanno fra 0 e 6. Se servirà una base — un valore di partenza uguale per
-  tutti, o di nuovo per tribù — è una colonna nuova, non un numero da spargere nel codice.
-- **Nessun effetto di gioco applicato**: le Caratteristiche descrivono cosa faranno
-  (danno, probabilità di colpire, movimento, gittata, difese), ma solo PF e Mana sono
-  calcolati. Il resto aspetta il motore di combattimento.
+- **Nessuna Caratteristica, PF/Mana, combattimento o carattere**: sono usciti dalla
+  creazione — i macro-passi della Via e dei talenti sono un solo step ciascuno. Nel
+  catalogo restano `caratteristiche`, `razza_caratteristiche` (con `hp_per_punto` /
+  `mana_per_punto` già modellati) e `tendenze`, pronte per le meccaniche che le
+  consumeranno. Su `personaggi` l'unico snapshot rimasto è `speed`, copiato da
+  `tribu.base_speed`.
+- **Nessun livello**: la progressione è già modellata nel catalogo (`sottovie.level`, una
+  sottovia per livello), ma non c'è ancora codice che la applichi. Per la stessa ragione,
+  dei talenti di via il catalogo contiene solo i tre di livello 0: gli altri (17 del
+  Combattente, 14 del Viandante, 13 del Sapiente) esistono nelle schede di gioco ma non
+  hanno ancora una sottovia che li porti.
+- **Nessun effetto di gioco applicato**: le Caratteristiche del catalogo descrivono cosa
+  faranno (danno, probabilità di colpire, movimento, gittata, difese), ma nessuno di quei
+  numeri viene ancora calcolato. Il resto aspetta il motore di combattimento.
 - **Nessun controllo di auth sulla pagina** `/onboarding`: la protezione è nel proxy
   (`lib/supabase/proxy.ts`, redirect a `/` senza sessione) — coerente col fatto che la
   pagina dev'essere prerenderizzabile. La verifica reale avviene al salvataggio.

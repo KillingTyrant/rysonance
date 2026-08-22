@@ -1,18 +1,14 @@
 import type {
-  Caratteristica,
   Catalog,
   Personaggio,
   PersonaggioDraft,
   Razza,
   Sesso,
-  Stats,
-  Stile,
   Talento,
-  Tendenza,
   Tribu,
   Via,
 } from "./types";
-import { SESSI, STILI } from "./types";
+import { SESSI } from "./types";
 
 /**
  * Quanti talenti a scelta dà una via prima dei suoi bonus. Allineato al 2 di
@@ -39,18 +35,7 @@ export function tribuByKey(catalog: Catalog, key: string | null): Tribu | null {
   return null;
 }
 
-export function caratteristicaByKey(
-  catalog: Catalog,
-  key: string | null,
-): Caratteristica | null {
-  return catalog.caratteristiche.find((c) => c.key === key) ?? null;
-}
-
-export function tendenzaByKey(catalog: Catalog, key: string): Tendenza | null {
-  return catalog.tendenze.find((tendenza) => tendenza.key === key) ?? null;
-}
-
-/** Cerca solo fra i talenti a scelta: gli altri non sono scegliibili. */
+/** Cerca solo fra i talenti a scelta: gli altri non si possono scegliere. */
 export function talentoSceltaByKey(
   catalog: Catalog,
   key: string | null,
@@ -74,10 +59,6 @@ export function sessoName(sesso: Sesso | null): string | null {
   return SESSI.find((item) => item.key === sesso)?.name ?? null;
 }
 
-export function stileName(stile: Stile | null): string | null {
-  return STILI.find((item) => item.key === stile)?.name ?? null;
-}
-
 // ─────────────────────────────── Derivazioni ────────────────────────────────
 
 /**
@@ -94,52 +75,12 @@ export function talentiDaScegliere(via: Via | null): number {
 }
 
 /**
- * Il valore finale di ogni Caratteristica: i punti distribuiti più il +1 della
- * razza. Si itera sul catalogo, così l'ordine è sempre quello di `sort_order` e
- * una chiave sconosciuta nel draft non compare.
- */
-export function valoriCaratteristiche(
-  catalog: Catalog,
-  draft: PersonaggioDraft,
-): { caratteristica: Caratteristica; punti: number; bonus: boolean; value: number }[] {
-  return catalog.caratteristiche.map((caratteristica) => {
-    const punti = draft.caratteristiche[caratteristica.key] ?? 0;
-    const bonus = draft.bonus_caratteristica_key === caratteristica.key;
-    return { caratteristica, punti, bonus, value: punti + (bonus ? 1 : 0) };
-  });
-}
-
-/** Quanti punti restano da distribuire. Può essere negativo se se ne spendono troppi. */
-export function puntiResidui(draft: PersonaggioDraft, totale: number): number {
-  return totale - Object.values(draft.caratteristiche).reduce((somma, n) => somma + n, 0);
-}
-
-/**
- * PF e Mana vengono per intero dalle Caratteristiche, con il moltiplicatore
- * scritto nel catalogo; la velocità è quella della tribù, che le Caratteristiche
- * non toccano. Con base_speed NULL il riepilogo mostra "—".
- */
-export function statsDa(
-  valori: { caratteristica: Caratteristica; value: number }[],
-  tribu: Tribu | null,
-): Stats {
-  let hp = 0;
-  let mana = 0;
-  for (const { caratteristica, value } of valori) {
-    hp += value * caratteristica.hp_per_punto;
-    mana += value * caratteristica.mana_per_punto;
-  }
-  return { hp, mana, speed: tribu?.base_speed ?? null };
-}
-
-/**
- * Una razza è giocabile se ha almeno una tribù e almeno una Caratteristica su
- * cui dare il suo +1: senza le candidate, il terzo step non avrebbe niente da
- * mostrare e il personaggio non sarebbe salvabile (lo rifiuterebbe la FK
- * composta di `personaggi`).
+ * Una razza è giocabile se ha almeno una tribù: senza, non ci sarebbe niente
+ * da scegliere nella sua card e il personaggio non sarebbe salvabile (lo
+ * rifiuterebbe la FK composta di `personaggi`).
  */
 export function isRazzaGiocabile(razza: Razza): boolean {
-  return razza.tribu.length > 0 && razza.caratteristiche.length > 0;
+  return razza.tribu.length > 0;
 }
 
 /** Tutti i talenti che il personaggio NON sceglie: razza, tribù, apertura della via. */
@@ -167,56 +108,40 @@ export type ResolvedPersonaggio = {
   via: Via | null;
   razza: Razza | null;
   tribu: Tribu | null;
-  caratteristiche: { caratteristica: Caratteristica; value: number; bonus: boolean }[];
-  attacco: string | null;
-  difesa: string | null;
   /**
    * Assegnati (razza, tribù, via) e poi quelli scelti dall'utente. Chi disegna
    * distingue i due gruppi con `talento.kind`, senza bisogno di due liste.
    */
   talenti: Talento[];
-  stats: Stats;
-  /** Solo le tendenze di catalogo, nel loro ordine. */
-  tendenze: { tendenza: Tendenza; value: number }[];
+  /** La velocità della tribù. Con base_speed NULL la scheda mostra "—". */
+  speed: number | null;
 };
 
-/** Le scelte in corso: le statistiche sono derivate dai punti distribuiti. */
+/** Le scelte in corso: la velocità è quella della tribù scelta. */
 export function resolveDraft(
   catalog: Catalog,
   draft: PersonaggioDraft,
 ): ResolvedPersonaggio {
-  return resolve(catalog, draft, valoriCaratteristiche(catalog, draft));
+  return resolve(catalog, draft);
 }
 
 /**
- * Un personaggio salvato: statistiche e Caratteristiche sono lo snapshot
- * scritto alla creazione, non quelle correnti del catalogo — che può essere
- * cambiato nel frattempo.
+ * Un personaggio salvato: la velocità è lo snapshot scritto alla creazione,
+ * non quella corrente del catalogo — che può essere cambiato nel frattempo.
  */
 export function resolveRow(
   catalog: Catalog,
   personaggio: Personaggio,
 ): ResolvedPersonaggio {
-  const valori = catalog.caratteristiche.map((caratteristica) => ({
-    caratteristica,
-    value: personaggio.caratteristiche[caratteristica.key] ?? 0,
-    bonus: personaggio.bonus_caratteristica_key === caratteristica.key,
-  }));
-
   return {
-    ...resolve(catalog, personaggio, valori),
-    stats: {
-      hp: personaggio.hp,
-      mana: personaggio.mana,
-      speed: personaggio.speed,
-    },
+    ...resolve(catalog, personaggio),
+    speed: personaggio.speed,
   };
 }
 
 function resolve(
   catalog: Catalog,
   scelte: PersonaggioDraft | Personaggio,
-  valori: { caratteristica: Caratteristica; value: number; bonus: boolean }[],
 ): ResolvedPersonaggio {
   const via = viaByKey(catalog, scelte.via_key);
   const razza = razzaByKey(catalog, scelte.razza_key);
@@ -228,23 +153,14 @@ function resolve(
     via,
     razza,
     tribu,
-    caratteristiche: valori,
-    attacco: stileName(scelte.attacco),
-    difesa: stileName(scelte.difesa),
     talenti: [
       ...talentiAssegnati(razza, tribu, via),
       // Si itera sulle scelte, non sul catalogo: l'ordine è quello in cui sono
-      // state fatte. Una chiave sconosciuta sparisce, come per le tendenze.
+      // state fatte. Una chiave sconosciuta semplicemente sparisce.
       ...scelte.talenti
         .map((key) => talentoSceltaByKey(catalog, key))
         .filter((talento): talento is Talento => talento !== null),
     ],
-    stats: statsDa(valori, tribu),
-    // Si itera sul catalogo, non sull'oggetto: una chiave sconosciuta non
-    // finisce a schermo e l'ordine è sempre quello di sort_order.
-    tendenze: catalog.tendenze.map((tendenza) => ({
-      tendenza,
-      value: scelte.tendenze[tendenza.key] ?? tendenza.default_value,
-    })),
+    speed: tribu?.base_speed ?? null,
   };
 }

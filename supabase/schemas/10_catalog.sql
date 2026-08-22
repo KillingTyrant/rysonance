@@ -80,22 +80,17 @@ grant select on table public.talenti to anon, authenticated;
 
 -- ───────────────────────────── CARATTERISTICHE ─────────────────────────────
 -- Le sei Caratteristiche Base. Sono contenuto di catalogo e non un enum perché
--- hanno una descrizione che il wizard mostra e che cambierà con le regole.
+-- hanno una descrizione che cambierà con le regole. Il wizard non le mostra
+-- più: aspettano le meccaniche di crescita e il motore di combattimento.
 --
 -- La maggior parte degli effetti di gioco (Forza → danno fisico, Destrezza →
 -- probabilità di colpire) non è ancora modellata: per ora vive nella
 -- descrizione, e diventerà struttura quando servirà al motore di combattimento.
 --
--- Fanno eccezione i due effetti che servono GIÀ alla creazione, perché
--- decidono i Punti Ferita e il Mana di partenza: sono colonne, non chiavi
--- scritte nel codice. Così la regola "ogni punto di Vigore vale 2 PF" sta nel
--- catalogo insieme alle altre, e né la RPC né il wizard devono sapere che
--- esiste una Caratteristica di nome "vigore".
---
--- I limiti della distribuzione iniziale (4 punti da spartire, +1 dalla razza,
--- tetto di 3 per Caratteristica) NON stanno qui: valgono solo alla creazione,
--- mentre queste righe descrivono la Caratteristica per tutta la vita del
--- personaggio. Li applica public.crea_personaggio.
+-- Fanno eccezione hp_per_punto e mana_per_punto, già modellati come colonne:
+-- la regola "ogni punto di Vigore vale 2 PF" sta nel catalogo insieme alle
+-- altre, pronta per quando il motore di combattimento la consumerà. La
+-- creazione non le usa più: il wizard non distribuisce punti Caratteristica.
 
 create table public.caratteristiche (
   key            text primary key,     -- 'forza' | 'intelletto' | ...
@@ -140,21 +135,20 @@ create policy razze_read on public.razze
 grant select on table public.razze to anon, authenticated;
 
 -- ────────────────────────── CARATTERISTICHE DI RAZZA ───────────────────────
--- Le Caratteristiche su cui la razza può concedere il suo +1: il giocatore ne
--- sceglie una fra queste, non fra tutte e sei.
+-- Le Caratteristiche in cui la razza eccelle. La creazione non le usa più (il
+-- +1 di razza non esiste più nel wizard): restano contenuto di catalogo, pronte
+-- per le meccaniche di crescita che le consumeranno.
 --
--- È una tabella e non una colonna array perché il vincolo dev'essere vero nel
--- database: `personaggi` ha una FK composta (razza_key, bonus_caratteristica_key)
--- che punta qui, ed è ciò che impedisce a un Nano di prendere il +1 su una
--- Caratteristica che i Nani non offrono. Con un array non sarebbe esprimibile.
+-- È una tabella e non una colonna array perché la relazione deve poter essere
+-- bersaglio di FK composte (razza_key, caratteristica_key) quando una scelta
+-- per-personaggio dovrà rispettarla, come accadeva con il +1 alla creazione.
 
 create table public.razza_caratteristiche (
   razza_key          text not null references public.razze (key) on delete cascade,
   caratteristica_key text not null references public.caratteristiche (key),
   sort_order         smallint not null default 0,
 
-  -- Copre anche la FK verso razze, che è la colonna guida, ed è il bersaglio
-  -- della FK composta di personaggi.
+  -- Copre anche la FK verso razze, che è la colonna guida.
   primary key (razza_key, caratteristica_key)
 );
 
@@ -251,8 +245,11 @@ grant select on table public.sottovie to anon, authenticated;
 -- Ogni tendenza è un asse fra due poli, non un elenco di opzioni — per questo
 -- non esiste un valore "neutrale": è il centro dell'asse.
 --
--- Attacco e difesa non sono più qui: erano assi continui, ora sono due scelte
--- binarie fra fisico e magico (l'enum `public.stile`, su `personaggi`).
+-- La creazione non le usa più (lo step del carattere è uscito dal wizard, e
+-- con lui `personaggio_tendenze`): restano contenuto di catalogo per quando il
+-- gioco tornerà a chiederle. Attacco e difesa non sono mai state qui in questa
+-- forma: erano assi continui, poi scelte binarie su `personaggi`, oggi fuori
+-- dalla creazione.
 --
 -- `type` ha significato di gioco, non serve alla UI: l'ordine di
 -- visualizzazione è dato da sort_order, che è globale.

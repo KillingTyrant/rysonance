@@ -10,7 +10,7 @@ type OptionCardProps = {
   meta?: ReactNode;
   selected: boolean;
   disabled?: boolean;
-  /** Perché l'opzione non è scegliibile (mostrato al posto della descrizione). */
+  /** Perché l'opzione non è selezionabile (mostrato al posto della descrizione). */
   disabledReason?: string;
   onSelect: () => void;
 };

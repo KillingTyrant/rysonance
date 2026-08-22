@@ -8,9 +8,3 @@
 -- può girare nella stessa transazione in cui il nuovo valore viene usato.
 
 create type public.sesso as enum ('maschio', 'femmina');
-
--- Lo stile di attacco e di difesa, per la stessa ragione: il combattimento è
--- sempre una contrapposizione fra attacco e difesa, e ciascuno dei due può
--- essere solo fisico (arma o oggetto fisico) o magico (magia o oggetto magico).
--- Due valori chiusi dalle regole, non contenuto di catalogo.
-create type public.stile as enum ('fisico', 'magico');

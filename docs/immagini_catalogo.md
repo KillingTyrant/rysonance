@@ -281,8 +281,8 @@ Scelte:
   rende ogni card di una riga alta diversamente se una tavola esce con un canvas leggermente
   diverso. La scatola a rapporto fisso più `object-cover` lo rende impossibile.
 - **`Check` resta nella title row.** Spostarlo in overlay sull'immagine renderebbe meglio, ma
-  collide col titolo nei sette call site senza immagine (sessi, caratteristiche, combattimento,
-  talenti). Zero regressioni batte la rifinitura marginale.
+  collide col titolo nei call site senza immagine (sessi, talenti). Zero regressioni batte la
+  rifinitura marginale.
 - **Niente `loading="eager"`**: non compra nulla (i browser scaricano subito le `lazy` già in
   viewport) e `priority` + `loading` insieme lanciano l'errore E218.
 - **4:3** dà 160px di altezza sulla card desktop da 213px, dove 16:9 ne darebbe 120 e leggerebbe
@@ -290,11 +290,11 @@ Scelte:
   sembra troppo alta, `aspect-[16/10] sm:aspect-[4/3]` la sistema gratis.
 
 **7. Call site** — passare `image` e, sulle razze, `priority`:
-- `components/onboarding/steps/identita-step.tsx:55-82` (razze) — `image={CATALOG_IMAGES.razze[item.key]}`,
+- `components/onboarding/steps/identita-step.tsx` (razze) — `image={CATALOG_IMAGES.razze[item.key]}`,
   `priority={i < 3}` (serve `(item, i)` nella callback). Tre = la prima riga `lg`.
-- `components/onboarding/steps/identita-step.tsx:95-114` (tribù) — `image={CATALOG_IMAGES.tribu[item.key]}`
-- `components/onboarding/steps/via-step.tsx:20-54` (vie) — `image={CATALOG_IMAGES.vie[via.key]}`
-- Invariati: sessi, caratteristiche, combattimento, talenti.
+- `components/onboarding/steps/identita-step.tsx` (tribù) — `image={CATALOG_IMAGES.tribu[item.key]}`
+- `components/onboarding/steps/via-step.tsx` (vie) — `image={CATALOG_IMAGES.vie[via.key]}`
+- Invariati: sessi, talenti.
 
 ## Blur e strategia di caricamento
 

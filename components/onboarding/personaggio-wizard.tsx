@@ -52,7 +52,7 @@ type WizardView =
  * payload mandato alla server action — non c'è nessuna conversione in mezzo.
  */
 export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
-  const [draft, setDraft] = useState<PersonaggioDraft>(() => emptyDraft(catalog));
+  const [draft, setDraft] = useState<PersonaggioDraft>(emptyDraft);
   const [view, setView] = useState<WizardView>({ mode: "hub" });
   const [notice, setNotice] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<SaveError | null>(null);
@@ -92,6 +92,10 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
 
   function go(next: WizardView) {
     setNotice(null);
+    // Un errore di salvataggio riguarda il tentativo appena fallito: lasciarlo
+    // in giro dopo aver cambiato vista lo farebbe sembrare ancora attuale al
+    // ritorno sul riepilogo.
+    setSaveError(null);
     setView(next);
   }
 
@@ -107,28 +111,12 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
 
     if (patch.razza_key !== undefined) {
       const razza = razzaByKey(catalog, next.razza_key);
-      const invalidate: string[] = [];
 
       // Una tribù di un'altra razza non ha senso, e la FK composta la
       // rifiuterebbe comunque.
       if (next.tribu_key && !razza?.tribu.some((t) => t.key === next.tribu_key)) {
         next.tribu_key = null;
-        invalidate.push("la tribù");
-      }
-
-      // Ogni razza dà il +1 solo su alcune Caratteristiche.
-      if (
-        next.bonus_caratteristica_key &&
-        !razza?.caratteristiche.some((c) => c.key === next.bonus_caratteristica_key)
-      ) {
-        next.bonus_caratteristica_key = null;
-        invalidate.push("il bonus di razza");
-      }
-
-      if (invalidate.length > 0) {
-        avvisi.push(
-          `Cambiando razza ${invalidate.join(" e ")} non erano più validi: li ho tolti.`,
-        );
+        avvisi.push("Cambiando razza la tribù non era più valida: l'ho tolta.");
       }
     }
 
@@ -177,7 +165,7 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
             variant="outline"
             onClick={() => {
               setSaved(null);
-              setDraft(emptyDraft(catalog));
+              setDraft(emptyDraft());
               setView({ mode: "hub" });
               setNotice(null);
               setSaveError(null);

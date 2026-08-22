@@ -4,9 +4,6 @@ import type { StepId } from "@/lib/onboarding/steps";
 import type { Catalog, PersonaggioDraft } from "@/lib/onboarding/types";
 import type { Problem } from "@/lib/onboarding/validate";
 
-import { CarattereStep } from "./steps/carattere-step";
-import { CaratteristicheStep } from "./steps/caratteristiche-step";
-import { CombattimentoStep } from "./steps/combattimento-step";
 import { IdentitaStep } from "./steps/identita-step";
 import { SummaryStep } from "./steps/summary-step";
 import { TalentiStep } from "./steps/talenti-step";
@@ -35,9 +32,6 @@ export type StepProps = {
 export const STEP_COMPONENTS: Record<StepId, ComponentType<StepProps>> = {
   identita: IdentitaStep,
   via: ViaStep,
-  caratteristiche: CaratteristicheStep,
-  combattimento: CombattimentoStep,
   talenti: TalentiStep,
-  carattere: CarattereStep,
   riepilogo: SummaryStep,
 };

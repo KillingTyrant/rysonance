@@ -1,9 +1,4 @@
-import {
-  isRazzaGiocabile,
-  statsDa,
-  tribuByKey,
-  valoriCaratteristiche,
-} from "@/lib/onboarding/selectors";
+import { isRazzaGiocabile, tribuByKey } from "@/lib/onboarding/selectors";
 import { SESSI } from "@/lib/onboarding/types";
 
 import { OptionCard } from "../option-card";
@@ -13,18 +8,13 @@ import type { StepProps } from "../wizard-steps";
 
 /**
  * Chi è il personaggio: sesso e da dove viene. La razza decide il talento
- * razziale, le tribù disponibili e su quali Caratteristiche potrà cadere il +1 —
- * per questo apre il wizard, prima dello step delle Caratteristiche. Il nome
- * invece si sceglie per ultimo, nel riepilogo, a eroe completo.
+ * razziale e le tribù disponibili. Il nome invece si sceglie per ultimo, nel
+ * riepilogo, a eroe completo.
  */
 export function IdentitaStep({ catalog, draft, onChange }: StepProps) {
-  // Le statistiche mostrate nella card aperta: a questo punto del wizard i
-  // punti Caratteristica sono quasi sempre zero, quindi pesa la velocità della
-  // tribù e poco altro — ma la formula è la stessa del riepilogo.
-  const stats = statsDa(
-    valoriCaratteristiche(catalog, draft),
-    tribuByKey(catalog, draft.tribu_key),
-  );
+  // La velocità mostrata nella card aperta: quella della tribù scelta, la
+  // stessa che il riepilogo mostra e che la RPC scrive alla creazione.
+  const speed = tribuByKey(catalog, draft.tribu_key)?.base_speed ?? null;
 
   return (
     <>
@@ -50,8 +40,8 @@ export function IdentitaStep({ catalog, draft, onChange }: StepProps) {
               selected={draft.razza_key === item.key}
               tribuKey={draft.tribu_key}
               disabled={!isRazzaGiocabile(item)}
-              disabledReason="Non ancora giocabile: mancano tribù o Caratteristiche."
-              stats={stats}
+              disabledReason="Non ancora giocabile: mancano le tribù."
+              speed={speed}
               onSelect={() => onChange({ razza_key: item.key })}
               onSelectTribu={(key) => onChange({ tribu_key: key })}
             />

@@ -5,7 +5,7 @@ import { cacheLife } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
-import type { Caratteristica, Catalog, Sottovia, Talento, Tribu } from "./types";
+import type { Catalog, Sottovia, Talento, Tribu } from "./types";
 
 /**
  * Client "anonimo" senza cookie: il catalogo è pubblico in lettura (RLS
@@ -22,15 +22,14 @@ function catalogClient() {
 
 /**
  * Legge il catalogo di gioco e lo ricompone secondo le relazioni del DB:
- * razza → tribù + Caratteristiche candidate, via → sottovie, ciascuna con il
- * proprio talento.
+ * razza → tribù, via → sottovie, ciascuna con il proprio talento.
  *
  * `"use cache"` + `cacheLife("max")`: viene risolto a build time e congelato
  * nelle pagine, quindi a runtime non parte nessuna query. La chiave di cache
  * include il build id, perciò ogni deploy rilegge il catalogo — il contenuto
  * cambia solo con un `db push --include-seed` seguito da un deploy.
  *
- * Otto query invece di un embed PostgREST: il legame verso i talenti è una FK
+ * Cinque query invece di un embed PostgREST: il legame verso i talenti è una FK
  * *composta* (talent_key, talent_kind), che l'embedding non risolve. Il numero
  * di round-trip è comunque irrilevante, gira a build time.
  *
@@ -45,16 +44,7 @@ export async function getCatalog(): Promise<Catalog> {
 
   const supabase = catalogClient();
 
-  const [
-    talenti,
-    caratteristiche,
-    razze,
-    razzaCaratteristiche,
-    tribu,
-    vie,
-    sottovie,
-    tendenze,
-  ] = await Promise.all([
+  const [talenti, razze, tribu, vie, sottovie] = await Promise.all([
     read(
       "talenti",
       supabase
@@ -63,24 +53,10 @@ export async function getCatalog(): Promise<Catalog> {
         .order("sort_order"),
     ),
     read(
-      "caratteristiche",
-      supabase
-        .from("caratteristiche")
-        .select("key, name, description, hp_per_punto, mana_per_punto, sort_order")
-        .order("sort_order"),
-    ),
-    read(
       "razze",
       supabase
         .from("razze")
         .select("key, name, description, sort_order, talent_key")
-        .order("sort_order"),
-    ),
-    read(
-      "razza_caratteristiche",
-      supabase
-        .from("razza_caratteristiche")
-        .select("razza_key, caratteristica_key, sort_order")
         .order("sort_order"),
     ),
     read(
@@ -101,15 +77,6 @@ export async function getCatalog(): Promise<Catalog> {
         .select("key, via_key, level, name, description, talent_key")
         .order("level"),
     ),
-    read(
-      "tendenze",
-      supabase
-        .from("tendenze")
-        .select(
-          "key, type, name, description, min_label, min_value, max_label, max_value, default_value, sort_order",
-        )
-        .order("sort_order"),
-    ),
   ]);
 
   // `properties` si consuma qui e non prosegue: gli effetti di gioco non
@@ -123,10 +90,6 @@ export async function getCatalog(): Promise<Catalog> {
 
   const talentoOf = (key: string | null) => (key ? talentoByKey.get(key) ?? null : null);
 
-  const caratteristicaByKey = new Map<string, Caratteristica>(
-    caratteristiche.map((c) => [c.key, c]),
-  );
-
   // Una passata per raggruppare, invece di rifiltrare l'array dentro ogni map.
   const tribuByRazza = groupBy(
     tribu.map(({ talent_key, ...row }): Tribu => ({
@@ -135,8 +98,6 @@ export async function getCatalog(): Promise<Catalog> {
     })),
     (t) => t.razza_key,
   );
-
-  const candidateByRazza = groupBy(razzaCaratteristiche, (rc) => rc.razza_key);
 
   const sottovieByVia = groupBy(sottovie, (s) => s.via_key);
 
@@ -159,16 +120,7 @@ export async function getCatalog(): Promise<Catalog> {
       ...row,
       talento: talentoOf(talent_key),
       tribu: tribuByRazza.get(row.key) ?? [],
-      // Il join sta qui e non in una query: le candidate sono una manciata di
-      // righe e questo tiene fuori dal payload la tabella di collegamento.
-      caratteristiche: (candidateByRazza.get(row.key) ?? [])
-        .map((rc) => caratteristicaByKey.get(rc.caratteristica_key))
-        .filter((c): c is Caratteristica => c !== undefined),
     })),
-    caratteristiche,
-    // `default_value` è una colonna generata: i tipi la dichiarano nullable, il
-    // DB non la lascia mai vuota. Il fallback tiene la tendenza dentro i limiti.
-    tendenze: tendenze.map((t) => ({ ...t, default_value: t.default_value ?? t.min_value })),
     // Nell'ordine di `sort_order`, che raggruppa per scuola e disciplina: è
     // l'ordine in cui lo step li mostra.
     talentiScelta: [...talentoByKey.values()].filter((t) => t.kind === "scelta"),

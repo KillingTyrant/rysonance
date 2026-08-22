@@ -63,13 +63,8 @@ export type Database = {
       }
       personaggi: {
         Row: {
-          attacco: Database["public"]["Enums"]["stile"]
-          bonus_caratteristica_key: string
           created_at: string
-          difesa: Database["public"]["Enums"]["stile"]
-          hp: number
           id: string
-          mana: number
           name: string
           razza_key: string
           sesso: Database["public"]["Enums"]["sesso"]
@@ -80,13 +75,8 @@ export type Database = {
           via_key: string
         }
         Insert: {
-          attacco: Database["public"]["Enums"]["stile"]
-          bonus_caratteristica_key: string
           created_at?: string
-          difesa: Database["public"]["Enums"]["stile"]
-          hp: number
           id?: string
-          mana: number
           name: string
           razza_key: string
           sesso: Database["public"]["Enums"]["sesso"]
@@ -97,13 +87,8 @@ export type Database = {
           via_key: string
         }
         Update: {
-          attacco?: Database["public"]["Enums"]["stile"]
-          bonus_caratteristica_key?: string
           created_at?: string
-          difesa?: Database["public"]["Enums"]["stile"]
-          hp?: number
           id?: string
-          mana?: number
           name?: string
           razza_key?: string
           sesso?: Database["public"]["Enums"]["sesso"]
@@ -114,13 +99,6 @@ export type Database = {
           via_key?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "personaggi_razza_key_bonus_caratteristica_key_fkey"
-            columns: ["razza_key", "bonus_caratteristica_key"]
-            isOneToOne: false
-            referencedRelation: "razza_caratteristiche"
-            referencedColumns: ["razza_key", "caratteristica_key"]
-          },
           {
             foreignKeyName: "personaggi_razza_key_fkey"
             columns: ["razza_key"]
@@ -141,39 +119,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vie"
             referencedColumns: ["key"]
-          },
-        ]
-      }
-      personaggio_caratteristiche: {
-        Row: {
-          caratteristica_key: string
-          personaggio_id: string
-          value: number
-        }
-        Insert: {
-          caratteristica_key: string
-          personaggio_id: string
-          value: number
-        }
-        Update: {
-          caratteristica_key?: string
-          personaggio_id?: string
-          value?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "personaggio_caratteristiche_caratteristica_key_fkey"
-            columns: ["caratteristica_key"]
-            isOneToOne: false
-            referencedRelation: "caratteristiche"
-            referencedColumns: ["key"]
-          },
-          {
-            foreignKeyName: "personaggio_caratteristiche_personaggio_id_fkey"
-            columns: ["personaggio_id"]
-            isOneToOne: false
-            referencedRelation: "personaggi"
-            referencedColumns: ["id"]
           },
         ]
       }
@@ -207,39 +152,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "talenti"
             referencedColumns: ["key", "kind"]
-          },
-        ]
-      }
-      personaggio_tendenze: {
-        Row: {
-          personaggio_id: string
-          tendenza_key: string
-          value: number
-        }
-        Insert: {
-          personaggio_id: string
-          tendenza_key: string
-          value: number
-        }
-        Update: {
-          personaggio_id?: string
-          tendenza_key?: string
-          value?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "personaggio_tendenze_personaggio_id_fkey"
-            columns: ["personaggio_id"]
-            isOneToOne: false
-            referencedRelation: "personaggi"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "personaggio_tendenze_tendenza_key_fkey"
-            columns: ["tendenza_key"]
-            isOneToOne: false
-            referencedRelation: "tendenze"
-            referencedColumns: ["key"]
           },
         ]
       }
@@ -507,15 +419,10 @@ export type Database = {
     Functions: {
       crea_personaggio: {
         Args: {
-          p_attacco: Database["public"]["Enums"]["stile"]
-          p_bonus_caratteristica: string
-          p_caratteristiche: Json
-          p_difesa: Database["public"]["Enums"]["stile"]
           p_name: string
           p_razza_key: string
           p_sesso: Database["public"]["Enums"]["sesso"]
           p_talenti: string[]
-          p_tendenze: Json
           p_tribu_key: string
           p_via_key: string
         }
@@ -525,7 +432,6 @@ export type Database = {
     }
     Enums: {
       sesso: "maschio" | "femmina"
-      stile: "fisico" | "magico"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -657,7 +563,6 @@ export const Constants = {
   public: {
     Enums: {
       sesso: ["maschio", "femmina"],
-      stile: ["fisico", "magico"],
     },
   },
 } as const

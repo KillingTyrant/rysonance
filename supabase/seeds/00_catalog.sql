@@ -421,9 +421,9 @@ where key = 'vd-giusta-scelta';
 
 
 -- Le sei Caratteristiche Base. `hp_per_punto` e `mana_per_punto` sono gli unici
--- effetti già modellati: sono quelli che decidono PF e Mana di partenza, e
--- averli qui evita che la RPC e il wizard debbano conoscere le chiavi 'vigore'
--- ed 'empatia_arcana'. Gli altri effetti vivono ancora nella descrizione.
+-- effetti già modellati: la creazione non li usa più (il wizard non distribuisce
+-- punti Caratteristica), restano nel catalogo pronti per il motore di
+-- combattimento. Gli altri effetti vivono ancora nella descrizione.
 create temp table _caratteristiche (
   key text, name text, description text,
   hp_per_punto smallint, mana_per_punto smallint, sort_order smallint
@@ -447,12 +447,11 @@ insert into _razze (key, name, description, talent_key, sort_order) values
   ('ulu_ari',  'Ulu-Ari',  '', 'rz-ulu-ari-olfatto-acuto',     5),
   ('gata_ari', 'Gata-Ari', '', 'rz-gata-ari-visione-notturna', 6);
 
--- ⚠️  SEGNAPOSTO: le Caratteristiche su cui ogni razza può dare il suo +1 sono
--- provvisorie, scelte per coerenza col talento razziale. Vanno sostituite con
--- le terne vere prima di andare in cloud — è l'unico dato di questo file che
--- non arriva dalle schede di gioco.
--- Il giocatore ne sceglie UNA fra quelle della sua razza; la FK composta di
--- `personaggi` rifiuta qualunque altra.
+-- ⚠️  SEGNAPOSTO: le Caratteristiche in cui ogni razza eccelle sono provvisorie,
+-- scelte per coerenza col talento razziale. Vanno sostituite con le terne vere
+-- prima di andare in cloud — è l'unico dato di questo file che non arriva dalle
+-- schede di gioco. La creazione non le usa più (il +1 di razza è uscito dal
+-- wizard): restano catalogo per le meccaniche future.
 create temp table _razza_caratteristiche (
   razza_key text, caratteristica_key text, sort_order smallint
 );
@@ -522,12 +521,13 @@ insert into _sottovie (key, via_key, level, name, description, talent_key) value
   ('viandante_0',   'viandante',   0, 'Giusta scelta',         'TODO: descrizione della sottovia iniziale del Viandante.',   'vd-giusta-scelta');
 
 -- Ogni tendenza è un asse fra due poli, non un elenco di opzioni: "neutrale" è
--- il centro dell'asse, non una voce. `sort_order` è globale e determina
--- l'ordine nel wizard: allineamento → moralità → carattere.
+-- il centro dell'asse, non una voce. `sort_order` è globale:
+-- allineamento → moralità → carattere.
 --
--- Attacco, difesa e reazione non sono più qui: attacco e difesa sono diventati
--- due scelte binarie fra fisico e magico (colonne di `personaggi`), e la
--- reazione è uscita dalla creazione del personaggio.
+-- La creazione non le usa più (lo step del carattere è uscito dal wizard):
+-- restano catalogo per quando il gioco tornerà a chiederle. Attacco, difesa e
+-- reazione sono usciti anche loro dalla creazione (attacco e difesa per un
+-- periodo sono stati due scelte binarie fra fisico e magico su `personaggi`).
 create temp table _tendenze (
   key text, type text, name text, description text,
   min_label text, min_value smallint, max_label text, max_value smallint,
