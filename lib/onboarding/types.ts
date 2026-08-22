@@ -38,7 +38,14 @@ export type Talento = Pick<
 
 export type Tribu = Pick<
   Row<"tribu">,
-  "key" | "razza_key" | "name" | "description" | "base_speed" | "sort_order"
+  | "key"
+  | "razza_key"
+  | "name"
+  | "description"
+  | "base_hp"
+  | "base_mana"
+  | "base_speed"
+  | "sort_order"
 > & { talento: Talento | null };
 
 export type Razza = Pick<

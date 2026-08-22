@@ -3,13 +3,33 @@ import { Check, Plus, Shuffle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WIZARD_GROUPS, type GroupId } from "@/lib/onboarding/groups";
 import { cn } from "@/lib/utils";
+import { PersonaggioDraft } from "@/lib/onboarding/types";
+
+function selectionValue(groupId: GroupId, draft: PersonaggioDraft): string | null {
+  if (groupId === "razza") {
+    const values = [draft.sesso, draft.razza_key, draft.tribu_key].filter(
+      (value): value is string => Boolean(value),
+    );
+    return values.length > 0 ? values.join(" • ") : null;
+  }
+
+  if (groupId === "via") return draft.via_key;
+
+  if (groupId === "talenti") {
+    return draft.talenti.length > 0 ? draft.talenti.join(", ") : null;
+  }
+
+  return null;
+}
 
 type HubScreenProps = {
+  draft: PersonaggioDraft;
   completed: (id: GroupId) => boolean;
   unlocked: (id: GroupId) => boolean;
   allComplete: boolean;
   disabled?: boolean;
   onOpenGroup: (id: GroupId) => void;
+  onRandomize: () => void;
   onCreaEroe: () => void;
 };
 
@@ -20,15 +40,17 @@ type HubScreenProps = {
  * dall'intro). La CTA si abilita solo quando tutto è completo.
  */
 export function HubScreen({
+  draft,
   completed,
   unlocked,
   allComplete,
   disabled,
   onOpenGroup,
+  onRandomize,
   onCreaEroe,
 }: HubScreenProps) {
   return (
-    <div className="relative isolate flex flex-1 flex-col gap-8">
+    <div className="relative isolate flex flex-1 flex-col">
       {/*
         Slot per l'arte di sfondo (silhouette dell'eroe + bussola): l'asset non
         esiste ancora. Quando arriverà va importato staticamente da `assets/`
@@ -45,6 +67,7 @@ export function HubScreen({
         {WIZARD_GROUPS.map((group) => {
           const isDone = completed(group.id);
           const isUnlocked = unlocked(group.id);
+          const selectedValue = selectionValue(group.id, draft);
           return (
             <li key={group.id}>
               <button
@@ -52,48 +75,56 @@ export function HubScreen({
                 disabled={!isUnlocked || disabled}
                 onClick={() => onOpenGroup(group.id)}
                 className={cn(
-                  "flex w-full items-center gap-4 rounded-md py-2 text-left",
+                  "flex w-full items-center gap-4 rounded-md p-2 text-left",
                   "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                  isDone && "bg-emerald-100/70 text-emerald-900",
                   !isUnlocked && "opacity-50",
                 )}
               >
                 <span
                   className={cn(
                     "flex h-12 w-12 shrink-0 items-center justify-center rounded-sm",
-                    isUnlocked
-                      ? "bg-foreground text-background"
-                      : "bg-muted text-muted-foreground",
+                    isDone
+                      ? "bg-emerald-600 text-white"
+                      : isUnlocked
+                        ? "bg-foreground text-background"
+                        : "bg-muted text-muted-foreground",
                   )}
                 >
                   {isDone ? <Check /> : <Plus />}
+
                 </span>
-                <span className="max-w-40 font-medium leading-snug">
-                  {group.label}
+                <span className={cn("w-full font-medium leading-snug", isDone && "text-emerald-900")}>
+                  <span className="block">{group.label}</span>
+                  {selectedValue && (
+                    <span
+                      className={cn(
+                        "mt-1 block text-sm font-normal text-muted-foreground",
+                        isDone && "text-emerald-800/90",
+                      )}
+                    >
+                      {selectedValue}
+                    </span>
+                  )}
                 </span>
               </button>
             </li>
           );
         })}
-
-        <li>
-          <button
-            type="button"
-            disabled
-            title="Presto disponibile"
-            className="flex w-full items-center gap-4 rounded-md py-2 text-left"
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
-              <Shuffle />
-            </span>
-            <span className="max-w-40 font-medium leading-snug">
-              Crea un eroe random
-              <span className="sr-only"> (presto disponibile)</span>
-            </span>
-          </button>
-        </li>
       </ol>
 
-      <div className="mt-auto pt-8">
+      <div className="mt-auto flex flex-col gap-3 pt-6">
+        <Button
+          type="button"
+          variant="ticketSecondary"
+          title="Creazione casuale"
+          className="flex w-full items-center gap-4 rounded-md py-2 text-left"
+          disabled={disabled}
+          onClick={onRandomize}
+        >
+          <Shuffle />
+          Crea un eroe random
+        </Button>
         <Button
           variant="ticket"
           size="lg"

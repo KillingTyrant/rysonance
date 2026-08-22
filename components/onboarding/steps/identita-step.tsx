@@ -12,9 +12,12 @@ import type { StepProps } from "../wizard-steps";
  * riepilogo, a eroe completo.
  */
 export function IdentitaStep({ catalog, draft, onChange }: StepProps) {
+  const tribu = tribuByKey(catalog, draft.tribu_key);
+  const hp = tribu?.base_hp ?? null;
+  const mana = tribu?.base_mana ?? null;
   // La velocità mostrata nella card aperta: quella della tribù scelta, la
   // stessa che il riepilogo mostra e che la RPC scrive alla creazione.
-  const speed = tribuByKey(catalog, draft.tribu_key)?.base_speed ?? null;
+  const speed = tribu?.base_speed ?? null;
 
   return (
     <>
@@ -34,17 +37,23 @@ export function IdentitaStep({ catalog, draft, onChange }: StepProps) {
       <StepSection>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {catalog.razze.map((item) => (
-            <RazzaCard
+            <div
               key={item.key}
-              razza={item}
-              selected={draft.razza_key === item.key}
-              tribuKey={draft.tribu_key}
-              disabled={!isRazzaGiocabile(item)}
-              disabledReason="Non ancora giocabile: mancano le tribù."
-              speed={speed}
-              onSelect={() => onChange({ razza_key: item.key })}
-              onSelectTribu={(key) => onChange({ tribu_key: key })}
-            />
+              className={draft.razza_key === item.key ? "sm:col-span-2 lg:col-span-3" : undefined}
+            >
+              <RazzaCard
+                razza={item}
+                selected={draft.razza_key === item.key}
+                tribuKey={draft.tribu_key}
+                disabled={!isRazzaGiocabile(item)}
+                disabledReason="Non ancora giocabile: mancano le tribù."
+                hp={hp}
+                mana={mana}
+                speed={speed}
+                onSelect={() => onChange({ razza_key: item.key })}
+                onSelectTribu={(key) => onChange({ tribu_key: key })}
+              />
+            </div>
           ))}
         </div>
       </StepSection>

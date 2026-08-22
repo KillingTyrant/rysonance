@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { Footprints } from "lucide-react";
+import { Footprints, Heart, Sparkles } from "lucide-react";
 
 import { cardVariants } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,8 @@ type RazzaCardProps = {
   /** Perché la razza non è selezionabile (mostrato sulla copertina). */
   disabledReason?: string;
   /** La velocità della tribù scelta, se è di questa razza. */
+  hp?: number | null;
+  mana?: number | null;
   speed?: number | null;
   /** L'illustrazione della razza, a tutta card (vedi docs/immagini_catalogo.md). */
   media?: ReactNode;
@@ -36,6 +38,8 @@ export function RazzaCard({
   tribuKey,
   disabled = false,
   disabledReason,
+  hp,
+  mana,
   speed,
   media,
   onSelect,
@@ -128,6 +132,8 @@ export function RazzaCard({
           </div>
 
           <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <Statistica icon={Heart} label="Vita" value={hp} />
+            <Statistica icon={Sparkles} label="Mana" value={mana} />
             <Statistica icon={Footprints} label="Movimento" value={speed} />
           </dl>
         </div>

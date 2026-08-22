@@ -166,14 +166,16 @@ grant select on table public.razza_caratteristiche to anon, authenticated;
 -- Appartengono a una razza e portano un talento di tribù.
 --
 -- Punti Ferita e Mana non sono più qui: derivano interamente dalle
--- Caratteristiche (Vigore ed Empatia Arcana). La tribù conserva solo la
--- velocità base, che le Caratteristiche non toccano.
+-- Caratteristiche (Vigore ed Empatia Arcana). Per mostrare i valori base già
+-- nella creazione, li teniamo anche a livello di tribù insieme alla velocità.
 
 create table public.tribu (
   key         text primary key,        -- 'eruscal' | 'kodron' | ...
   razza_key   text not null references public.razze (key) on delete cascade,
   name        text not null,
   description text not null default '',
+  base_hp     smallint,
+  base_mana   smallint,
   base_speed  smallint,                -- NULL = dato di gioco non ancora definito
   sort_order  smallint not null default 0,
 

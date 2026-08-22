@@ -34,7 +34,7 @@ export function PersonaggioSheet({
   footer,
   className,
 }: PersonaggioSheetProps) {
-  const { name, sesso, razza, tribu, via, talenti, speed } = resolved;
+  const { name, sesso, razza, tribu, via, talenti, hp, mana, speed } = resolved;
   const compact = variant === "aside";
   const origini = [razza?.name, tribu?.name, sesso].filter(Boolean).join(" · ");
 
@@ -66,6 +66,12 @@ export function PersonaggioSheet({
 
       <Blocco title="Statistiche">
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
+          <span>
+            Vita <Stat value={hp} />
+          </span>
+          <span>
+            Mana <Stat value={mana} />
+          </span>
           <span>
             Velocità <Stat value={speed} />
           </span>

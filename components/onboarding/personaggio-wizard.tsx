@@ -15,6 +15,7 @@ import {
   type GroupId,
 } from "@/lib/onboarding/groups";
 import {
+  isRazzaGiocabile,
   razzaByKey,
   talentiDaScegliere,
   viaByKey,
@@ -25,7 +26,12 @@ import {
   WIZARD_STEPS,
   type StepId,
 } from "@/lib/onboarding/steps";
-import type { Catalog, Personaggio, PersonaggioDraft } from "@/lib/onboarding/types";
+import {
+  SESSI,
+  type Catalog,
+  type Personaggio,
+  type PersonaggioDraft,
+} from "@/lib/onboarding/types";
 import { emptyDraft, validateDraft } from "@/lib/onboarding/validate";
 
 import { GroupIntro } from "./group-intro";
@@ -43,6 +49,20 @@ type WizardView =
   | { mode: "intro"; group: GroupId }
   | { mode: "step"; step: StepId }
   | { mode: "summary" };
+
+function pickRandom<T>(items: readonly T[]): T | null {
+  if (items.length === 0) return null;
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function sampleUnique(items: readonly string[], count: number): string[] {
+  const pool = [...items];
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
 
 /**
  * Wizard di creazione personaggio. Il catalogo arriva già risolto dal server
@@ -148,6 +168,39 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
     });
   }
 
+  function handleRandomize() {
+    const sesso = pickRandom(SESSI)?.key ?? null;
+    const razza = pickRandom(catalog.razze.filter(isRazzaGiocabile));
+    const tribu = razza ? pickRandom(razza.tribu) : null;
+    const via = pickRandom(catalog.vie);
+    const quantiTalenti = talentiDaScegliere(via);
+    const talenti = sampleUnique(
+      catalog.talentiScelta.map((talento) => talento.key),
+      quantiTalenti,
+    );
+
+    const randomDraft: PersonaggioDraft = {
+      ...emptyDraft(),
+      name: `Eroe ${Math.floor(1000 + Math.random() * 9000)}`,
+      sesso,
+      razza_key: razza?.key ?? null,
+      tribu_key: tribu?.key ?? null,
+      via_key: via?.key ?? null,
+      talenti,
+    };
+
+    setDraft(randomDraft);
+    setSaveError(null);
+    setView({ mode: "hub" });
+
+    if (!via || !razza || !tribu || talenti.length !== quantiTalenti) {
+      setNotice("Scelte casuali parziali: completa i campi mancanti.");
+      return;
+    }
+
+    setNotice("Eroe random generato: puoi rivedere le scelte o procedere.");
+  }
+
   if (saved) {
     return (
       <div className="flex w-full max-w-xl flex-col gap-6 self-center rounded-xl border bg-card p-8 text-center shadow">
@@ -188,8 +241,10 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
           completed={(id) => isGroupComplete(problems, id)}
           unlocked={(id) => isGroupUnlocked(problems, id)}
           allComplete={allGroupsComplete(problems)}
+          draft={draft}
           disabled={pending}
           onOpenGroup={(id) => go({ mode: "intro", group: id })}
+          onRandomize={handleRandomize}
           onCreaEroe={() => go({ mode: "summary" })}
         />
       </div>
@@ -229,7 +284,7 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
       key={viewKey}
       ref={viewRef}
       tabIndex={-1}
-      className="flex w-full flex-col gap-8 outline-none"
+      className="flex w-full flex-col outline-none"
     >
       <header className="flex flex-col gap-1">
         <h1 className="text-4xl font-bold">
@@ -246,7 +301,7 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
       </header>
 
       {/* <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]"> */}
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col">
         <div role="status" aria-live="polite">
           {notice && (
             <p className="rounded-xl border bg-secondary/40 p-3 text-sm text-muted-foreground">
@@ -268,8 +323,9 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
 
         <nav className="flex flex-wrap items-center justify-between gap-3 border-t pt-6">
           <Button
+            className="w-52"
             type="button"
-            variant="outline"
+            variant="ticketSecondary"
             disabled={pending}
             onClick={() => {
               if (!position || position.index === 0) go({ mode: "hub" });
@@ -289,7 +345,9 @@ export function PersonaggioWizard({ catalog }: { catalog: Catalog }) {
                 </span>
               )}
               <Button
+                className="w-52"
                 type="button"
+                variant="ticket"
                 disabled={missing.length > 0 || pending}
                 onClick={() => {
                   if (position.index === position.count - 1) go({ mode: "hub" });

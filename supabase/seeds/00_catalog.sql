@@ -475,29 +475,27 @@ insert into _razza_caratteristiche (razza_key, caratteristica_key, sort_order) v
   ('gata_ari', 'concentrazione', 2),
   ('gata_ari', 'vigore',         3);
 
--- Punti Ferita e Mana non sono più qui: derivano dalle Caratteristiche (Vigore
--- ed Empatia Arcana). Alla tribù resta la velocità base, copiata su
--- `personaggi` da public.crea_personaggio; con base_speed NULL il riepilogo
--- mostra "—".
+-- Punti Ferita e Mana base della tribù: servono alla UI del wizard per
+-- mostrare subito il profilo numerico della scelta.
 -- `sort_order` è progressivo dentro la razza: il catalogo ordina globalmente e
 -- poi raggruppa per razza, quindi l'ordine relativo delle due è preservato.
 create temp table _tribu (
   key text, razza_key text, name text, description text, talent_key text,
-  base_speed smallint, sort_order smallint
+  base_hp smallint, base_mana smallint, base_speed smallint, sort_order smallint
 );
-insert into _tribu (key, razza_key, name, description, talent_key, base_speed, sort_order) values
-  ('eruscal',  'umani',    'Eruscal',  '', 'rz-umano-incoraggiamento',         2, 1),
-  ('kodron',   'umani',    'Kodron',   '', 'rz-umano-tempra',                  2, 2),
-  ('nandrein', 'nani',     'Nandrein', '', 'rz-nano-stoicismo',                1, 1),
-  ('turuf',    'nani',     'Turuf',    '', 'rz-nano-dimensioni-ridotte',       4, 2),
-  ('ruul',     'orchi',    'Ruul',     '', 'rz-orco-furia',                    2, 1),
-  ('dramput',  'orchi',    'Dramput',  '', 'rz-orco-euforia',                  2, 2),
-  ('elehil',   'elfi',     'Elehil',   '', 'rz-elfo-sovraccarico',             2, 1),
-  ('selvas',   'elfi',     'Selvas',   '', 'rz-elfo-adattamento',              3, 2),
-  ('lurven',   'ulu_ari',  'Lurven',   '', 'rz-ulu-ari-zelo',                  2, 1),
-  ('shakul',   'ulu_ari',  'Shakul',   '', 'rz-ulu-ari-capo-branco',           2, 2),
-  ('oncalynx', 'gata_ari', 'Oncalynx', '', 'rz-gata-ari-predatore-silenzioso', 4, 1),
-  ('kajan',    'gata_ari', 'Kajan',    '', 'rz-gata-ari-furia-felina',         3, 2);
+insert into _tribu (key, razza_key, name, description, talent_key, base_hp, base_mana, base_speed, sort_order) values
+  ('eruscal',  'umani',    'Eruscal',  '', 'rz-umano-incoraggiamento',         33, 17, 2, 1),
+  ('kodron',   'umani',    'Kodron',   '', 'rz-umano-tempra',                  35, 17, 2, 2),
+  ('nandrein', 'nani',     'Nandrein', '', 'rz-nano-stoicismo',                40, 14, 1, 1),
+  ('turuf',    'nani',     'Turuf',    '', 'rz-nano-dimensioni-ridotte',       32, 15, 4, 2),
+  ('ruul',     'orchi',    'Ruul',     '', 'rz-orco-furia',                    37, 16, 2, 1),
+  ('dramput',  'orchi',    'Dramput',  '', 'rz-orco-euforia',                  32, 16, 2, 2),
+  ('elehil',   'elfi',     'Elehil',   '', 'rz-elfo-sovraccarico',             33, 22, 2, 1),
+  ('selvas',   'elfi',     'Selvas',   '', 'rz-elfo-adattamento',              35, 19, 3, 2),
+  ('lurven',   'ulu_ari',  'Lurven',   '', 'rz-ulu-ari-zelo',                  35, 15, 2, 1),
+  ('shakul',   'ulu_ari',  'Shakul',   '', 'rz-ulu-ari-capo-branco',           33, 15, 2, 2),
+  ('oncalynx', 'gata_ari', 'Oncalynx', '', 'rz-gata-ari-predatore-silenzioso', 33, 16, 4, 1),
+  ('kajan',    'gata_ari', 'Kajan',    '', 'rz-gata-ari-furia-felina',         37, 16, 3, 2);
 
 -- Le descrizioni elencavano i gruppi di discipline, che non esistono più: da
 -- riscrivere quando le vie hanno una descrizione vera.
@@ -578,13 +576,15 @@ select razza_key, caratteristica_key, sort_order from _razza_caratteristiche
 on conflict (razza_key, caratteristica_key) do update set
   sort_order = excluded.sort_order;
 
-insert into public.tribu (key, razza_key, name, description, talent_key, base_speed, sort_order)
-select key, razza_key, name, description, talent_key, base_speed, sort_order from _tribu
+insert into public.tribu (key, razza_key, name, description, talent_key, base_hp, base_mana, base_speed, sort_order)
+select key, razza_key, name, description, talent_key, base_hp, base_mana, base_speed, sort_order from _tribu
 on conflict (key) do update set
   razza_key   = excluded.razza_key,
   name        = excluded.name,
   description = excluded.description,
   talent_key  = excluded.talent_key,
+  base_hp     = excluded.base_hp,
+  base_mana   = excluded.base_mana,
   base_speed  = excluded.base_speed,
   sort_order  = excluded.sort_order;
 

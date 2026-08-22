@@ -113,6 +113,10 @@ export type ResolvedPersonaggio = {
    * distingue i due gruppi con `talento.kind`, senza bisogno di due liste.
    */
   talenti: Talento[];
+  /** I punti vita base della tribù selezionata. */
+  hp: number | null;
+  /** Il mana base della tribù selezionata. */
+  mana: number | null;
   /** La velocità della tribù. Con base_speed NULL la scheda mostra "—". */
   speed: number | null;
 };
@@ -161,6 +165,8 @@ function resolve(
         .map((key) => talentoSceltaByKey(catalog, key))
         .filter((talento): talento is Talento => talento !== null),
     ],
+    hp: tribu?.base_hp ?? null,
+    mana: tribu?.base_mana ?? null,
     speed: tribu?.base_speed ?? null,
   };
 }

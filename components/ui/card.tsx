@@ -24,9 +24,9 @@ const cardVariants = cva(
         /** Altezza dal contenuto: la Card di sempre, invariata. */
         default: "",
         /** Card di scelta chiusa: illustrazione e nome. */
-        compact: "h-[195px] w-full max-w-[351px]",
+        compact: "h-[195px] w-full",
         /** Card di scelta aperta: contiene anche la scelta della sottorazza. */
-        expanded: "h-[576px] w-full max-w-[351px]",
+        expanded: "h-[576px] w-full",
       },
     },
     defaultVariants: {
