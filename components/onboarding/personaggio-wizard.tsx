@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { salvaPersonaggio } from "@/app/(protected)/onboarding/actions";
-import { PersonaggioSheet } from "@/components/personaggi/personaggio-sheet";
 import { Button } from "@/components/ui/button";
 import {
   allGroupsComplete,
@@ -17,7 +16,6 @@ import {
 } from "@/lib/onboarding/groups";
 import {
   razzaByKey,
-  resolveDraft,
   talentiDaScegliere,
   viaByKey,
 } from "@/lib/onboarding/selectors";

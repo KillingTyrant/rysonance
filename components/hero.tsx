@@ -2,8 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { Logo } from "./layout/logo";
-import { Suspense } from "react";
-import { AuthButton } from "./auth/auth-button";
 
 export async function Hero() {
   const supabase = await createClient();
