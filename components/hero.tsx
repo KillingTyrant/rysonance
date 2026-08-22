@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { Logo } from "./layout/logo";
 
+
 export async function Hero() {
   const supabase = await createClient();
 
@@ -22,7 +23,7 @@ export async function Hero() {
         volta raggiunto il tetto — e traboccare diventa impossibile.
       */}
       <h1 className="w-full max-w-2xl">
-        <Logo className="h-auto w-full" />
+        <Logo className="h-auto w-full fill-primary" iconOnly={false} />
       </h1>
       {user ? (
         <div className="flex items-center gap-4">
